@@ -6,6 +6,12 @@ APP 内可通过「检查更新」获取最新版本。
 
 ---
 
+## v1.6 (versionCode 7)
+- **通知形态完全对齐 VideoSplitter（已验证可上背屏）**：移除 `miui.focus.param`/`miui.focus.pics` 厂商私有参数（VideoSplitter 源码明确"不写入任何厂商私有 extras"，带厂商参数的通知疑似不参与实时动态→背屏映射）；补上缺失的 `setCategory(CATEGORY_PROGRESS)` 与 `setTicker`；promoted extras 改为 API 36+ 无条件写入（原 `ongoing` 附加条件导致首条前台通知不带提升请求）
+- **更新频率对齐**：轮询 3 秒 → 1 秒，移除"内容未变不刷新"去重，每次轮询都 notify，让系统持续重新评估提升资格
+- **通知渠道对齐**：新渠道 `charging_island_v3`（IMPORTANCE_LOW，同 VideoSplitter "split" 渠道参数）
+- **校验通过**：编译成功、aapt 版本号 7/1.6
+
 ## v1.5 (versionCode 6)
 - **应用内更新全面对齐 VideoSplitter**：检查源改为 Release 上的 `version.json` 固定地址（启动静默自动检查 + 手动检查）；发现新版后 APP 内前台服务下载（通知栏实时进度、切后台不中断）、体积/版本/可解析三重校验、缓存复用、PackageInstaller 官方安装会话一键安装（含未知应用授权引导）
 - **新增更新日志页**：三层数据降级（本地缓存 → 内置 assets → 远端 CHANGELOG.md raw/CDN 双源），完整版本历史离线可读、联网自动刷新

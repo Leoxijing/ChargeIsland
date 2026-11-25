@@ -1,13 +1,13 @@
 # ChargeIsland · 充电进度岛
 
-面向小米澎湃 OS（HyperOS）的充电进度显示 APP，适配 Xiaomi 18 Pro Max。实时展示电量、充电功率、电池温度与预计充满时间，并接入**小米超级岛**与 **Android 16 实时动态（Live Updates / Promoted Notifications）**，充电进度同步展示于超级岛、通知栏、锁屏、息屏与背屏。
+面向小米澎湃 OS（HyperOS）的充电进度显示 APP，适配 Xiaomi 18 Pro Max。实时展示电量、充电功率、电池温度与预计充满时间，通知形态完全对齐 VideoSplitter（纯标准通知），接入 **Android 16 实时动态（Live Updates / Promoted Notifications）**，充电进度同步展示于通知栏、锁屏、息屏与背屏。
 
 ## 功能
 
 - **充电监控前台服务**：电量、充电状态、功率（电压 × 电流估算）、电池温度、预计充满时间
 - **电量充电曲线**：进程内采样绘制
-- **小米超级岛**：通过 `miui.focus.param` 岛通知参数上岛（摘要态 / 展开态 / 焦点通知卡片）
 - **Android 16 实时动态**：API 36+ 写入官方 extras key `android.requestPromotedOngoing` 请求提升，`hasPromotableCharacteristics` / `FLAG_PROMOTED_ONGOING` / `canPostPromotedNotifications` 全套状态诊断，一键跳转系统设置
+- **通知形态对齐 VideoSplitter**：纯标准通知（不写厂商私有 extras）、`CATEGORY_PROGRESS` + `BigTextStyle` + 进度条 + `VISIBILITY_PUBLIC`、1 秒高频刷新
 - **锁屏 / 息屏 / 背屏展示**：通知渠道与通知均设为 `VISIBILITY_PUBLIC`；配合系统「设置 → 妙享背屏 → 背屏通知」开关同步显示
 - **应用内更新（机制对齐 VideoSplitter）**：Release 上的 `version.json` 为检查源，启动静默自动检查 + 手动检查；前台服务后台下载（通知栏实时进度）、三重校验、缓存复用、PackageInstaller 官方安装会话一键安装
 - **更新日志页**：三层数据降级（本地缓存 → 内置 assets → 远端 CHANGELOG.md raw/CDN 双源），完整版本历史离线可读、联网自动刷新
@@ -19,7 +19,7 @@
 ## 使用说明
 
 1. 安装后打开 APP，授予通知权限
-2. 点击「开始监控充电进度」，常驻通知与超级岛即开始刷新
+2. 点击「开始监控充电进度」，常驻通知即开始每秒刷新
 3. **背屏显示**：设置 → 妙享背屏 → 背屏通知 → 开启「背屏通知」与「显示通知详情」
 4. **实时动态**：点击「实时动态设置」确认系统开关已开启，状态行显示「已提升展示 ✓」即生效
 
@@ -39,6 +39,7 @@ bash build.sh
 
 | 版本 | versionCode | 说明 |
 |------|-------------|------|
+| 1.6  | 7           | 通知形态完全对齐 VideoSplitter：移除厂商私有 extras、补 CATEGORY_PROGRESS/ticker、1 秒高频刷新、渠道 LOW |
 | 1.5  | 6           | 应用内更新对齐 VideoSplitter（version.json 检查/前台服务下载/一键安装）、更新日志页（三层数据） |
 | 1.4  | 5           | 修复 Promoted 提升请求写入方式（extras key `android.requestPromotedOngoing`，API 36+），实时动态可上背屏 |
 | 1.3  | 4           | 背屏/锁屏可见性修复（VISIBILITY_PUBLIC + 新通知渠道）、GitHub 联网检查更新 |

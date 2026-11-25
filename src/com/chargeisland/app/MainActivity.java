@@ -129,10 +129,10 @@ public class MainActivity extends Activity {
         Intent svc = new Intent(this, ChargingService.class);
         if (ChargeDataStore.serviceRunning) {
             stopService(svc);
-            tvHint.setText("已停止。开启后将常驻通知并上岛展示充电进度。");
+            tvHint.setText("已停止。开启后将常驻通知并实时展示充电进度。");
         } else {
             startForegroundService(svc);
-            tvHint.setText("监控中：通知/超级岛/背屏将实时显示充电进度。");
+            tvHint.setText("监控中：通知/锁屏/背屏将实时显示充电进度。");
         }
         // 服务启动是异步的，稍后刷新按钮状态
         btnToggle.postDelayed(this::updateToggleState, 400);
@@ -142,7 +142,7 @@ public class MainActivity extends Activity {
         boolean running = ChargeDataStore.serviceRunning;
         btnToggle.setText(running ? "停止监控" : "开始监控充电进度");
         if (running) {
-            tvHint.setText("监控中：通知/超级岛/背屏将实时显示充电进度。");
+            tvHint.setText("监控中：通知/锁屏/背屏将实时显示充电进度。");
         }
     }
 

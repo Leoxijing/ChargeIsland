@@ -253,7 +253,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:layout_marginBottom="16dp"
-            android:text="开启后常驻通知并上超级岛。若背屏未显示充电进度：请到 设置 → 妙享背屏 → 背屏通知，开启「背屏通知」与「显示通知详情」。"
+            android:text="开启后常驻通知并请求实时动态提升（纯标准通知，对齐 VideoSplitter）。若背屏未显示充电进度：请到 设置 → 妙享背屏 → 背屏通知，开启「背屏通知」与「显示通知详情」。"
             android:textColor="#8B949E"
             android:textSize="13sp" />
     </LinearLayout>

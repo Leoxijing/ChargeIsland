@@ -9,30 +9,30 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ServiceInfo;
-import android.graphics.drawable.Icon;
 import android.os.BatteryManager;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 
-import org.json.JSONObject;
-
-/** 前台服务：轮询电池状态，刷新通知并携带小米超级岛（miui.focus.param）参数。 */
+/**
+ * 前台服务：轮询电池状态，刷新充电进度通知。
+ * 通知形态完全对齐 VideoSplitter（已验证可上背屏）：纯标准通知、不写任何厂商私有 extras
+ * （v1.6 移除 miui.focus.param 超级岛参数——带厂商参数的通知疑似不参与实时动态→背屏映射），
+ * 每秒刷新，API 36+ 无条件请求 Promoted 提升。
+ */
 public class ChargingService extends android.app.Service {
 
     private static final int NOTIFY_ID = 1001;
-    // v1.3 换新渠道：通知渠道属性创建后不可修改，新渠道用于应用锁屏/背屏公开可见性
-    private static final String CHANNEL_ID = "charging_island_v2";
-    private static final long POLL_INTERVAL_MS = 3000;
+    // v1.6 换新渠道：对齐 VideoSplitter 的 IMPORTANCE_LOW（渠道属性创建后不可修改）
+    private static final String CHANNEL_ID = "charging_island_v3";
+    // v1.6：3s → 1s，对齐 VideoSplitter 的高频进度更新（促进系统持续评估提升资格）
+    private static final long POLL_INTERVAL_MS = 1000;
 
     private NotificationManager nm;
     private Handler handler;
     private Runnable pollRunnable;
-    private long sequence = 0;
     private boolean registered = false;
-    private String lastNotifyKey = "";
 
     private final BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
         @Override
@@ -46,7 +46,7 @@ public class ChargingService extends android.app.Service {
         super.onCreate();
         nm = getSystemService(NotificationManager.class);
         NotificationChannel channel = new NotificationChannel(
-                CHANNEL_ID, "充电进度", NotificationManager.IMPORTANCE_DEFAULT);
+                CHANNEL_ID, "充电进度", NotificationManager.IMPORTANCE_LOW);
         channel.setShowBadge(false);
         channel.setSound(null, null);
         // 锁屏/息屏/背屏公开展示完整内容（默认 PRIVATE 会隐藏详情，导致背屏只见"内容已隐藏"）
@@ -76,7 +76,7 @@ public class ChargingService extends android.app.Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         ChargeDataStore.serviceRunning = true;
-        Notification base = buildNotification("正在获取充电状态…", "请稍候", false);
+        Notification base = buildNotification("正在获取充电状态…", "请稍候", false, 0);
         if (Build.VERSION.SDK_INT >= 34) {
             startForeground(NOTIFY_ID, base, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
         } else {
@@ -213,29 +213,9 @@ public class ChargingService extends android.app.Service {
         }
         detail.append(" · 电池 ").append(tempText);
 
-        // 超级岛摘要态/展开态文案
-        String islandFront = charging ? (full ? "已充满" : plugLabel) : "未充电";
-        String islandContent = charging
-                ? (full ? "100%" : (watts >= 0 ? powerText + " · " + etaText : etaText))
-                : "剩余 " + pct + "%";
-
-        // 展示内容无变化时不重复刷新通知（但提升状态仍需跟踪）
-        String notifyKey = pct + "|" + statusText + "|" + detail;
-        if (notifyKey.equals(lastNotifyKey)) {
-            updatePromotedState(null);
-            return;
-        }
-        lastNotifyKey = notifyKey;
-
-        String islandJson = buildIslandJson(pct, statusText, islandFront, islandContent, detail.toString());
-
-        Notification notification = buildNotification(statusText + " " + pct + "%", detail.toString(), charging);
-        notification.extras.putString("miui.focus.param", islandJson);
-        Bundle pics = new Bundle();
-        pics.putParcelable("miui.focus.pic_imageText",
-                Icon.createWithResource(this, R.drawable.ic_stat_charge));
-        notification.extras.putBundle("miui.focus.pics", pics);
-
+        // 每次轮询都刷新通知（对齐 VideoSplitter：高频 notify，不因内容未变而跳过，
+        // 让系统持续重新评估 Promoted 提升资格）
+        Notification notification = buildNotification(statusText + " " + pct + "%", detail.toString(), charging, pct);
         nm.notify(NOTIFY_ID, notification);
         updatePromotedState(notification);
     }
@@ -278,90 +258,35 @@ public class ChargingService extends android.app.Service {
         }
     }
 
-    private Notification buildNotification(String title, String text, boolean ongoing) {
+    private Notification buildNotification(String title, String text, boolean ongoing, int pct) {
         Intent open = new Intent(this, MainActivity.class);
         open.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pi = PendingIntent.getActivity(this, 0, open,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
+        // 字段对齐 VideoSplitter StatusBarProgress.build：category/ticker/onlyAlertOnce/PUBLIC 全套
         Notification.Builder builder = new Notification.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_stat_charge)
                 .setContentTitle(title)
                 .setContentText(text)
-                // 锁屏/息屏/背屏公开展示完整内容（配合新通知渠道的 VISIBILITY_PUBLIC）
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
                 // 实时动态（Live Updates）资格要求：BigTextStyle + contentTitle + ongoing
                 .setStyle(new Notification.BigTextStyle().bigText(text))
+                .setProgress(100, Math.max(0, Math.min(100, pct)), false)
+                .setColor(0xFFFFC400)
+                .setCategory(Notification.CATEGORY_PROGRESS)
                 .setContentIntent(pi)
                 .setOngoing(ongoing)
                 .setOnlyAlertOnce(true)
+                .setTicker(title)
                 .setShowWhen(true);
         // Android 16 Promoted Notifications：framework Builder 没有 setRequestPromotedOngoing 方法
         //（反射调用会静默失败导致提升请求从未写入），官方要求写入 extras key，字面值同
-        // androidx NotificationCompat.EXTRA_REQUEST_PROMOTED_ONGOING；仅 API 36+ 写入。
-        if (ongoing && Build.VERSION.SDK_INT >= 36) {
+        // androidx NotificationCompat.EXTRA_REQUEST_PROMOTED_ONGOING；API 36+ 无条件写入
+        //（对齐 VideoSplitter：不附加 ongoing 条件，首条前台通知即携带提升请求）。
+        if (Build.VERSION.SDK_INT >= 36) {
             builder.getExtras().putBoolean("android.requestPromotedOngoing", true);
         }
         return builder.build();
-    }
-
-    /** 构建小米超级岛参数（miui.focus.param），字段结构依据小米超级岛开发指南/EMAS 接入示例。 */
-    private String buildIslandJson(int pct, String statusText, String frontTitle,
-                                   String islandContent, String detailText) {
-        try {
-            sequence++;
-            JSONObject p2 = new JSONObject();
-            p2.put("protocol", 1);
-            p2.put("business", "charging");
-            p2.put("updatable", true);
-            p2.put("enableFloat", false);
-            p2.put("sequence", sequence);
-            p2.put("timeout", 720);                 // 焦点通知消失时间（分钟）
-            p2.put("ticker", statusText + " " + pct + "%");
-            p2.put("aodTitle", statusText + " " + pct + "%");
-
-            JSONObject picInfo = new JSONObject();
-            picInfo.put("type", 1);
-            picInfo.put("pic", "miui.focus.pic_imageText");
-
-            JSONObject textInfo = new JSONObject();
-            textInfo.put("frontTitle", frontTitle);
-            textInfo.put("title", pct + "%");
-            textInfo.put("content", islandContent);
-            textInfo.put("useHighLight", false);
-
-            JSONObject left = new JSONObject();
-            left.put("type", 1);
-            left.put("picInfo", picInfo);
-            left.put("miui.focus.paramtextInfo", textInfo);
-
-            JSONObject big = new JSONObject();
-            big.put("imageTextInfoLeft", left);
-            big.put("picInfo", picInfo);
-
-            JSONObject small = new JSONObject();
-            small.put("picInfo", picInfo);
-
-            JSONObject island = new JSONObject();
-            island.put("islandProperty", 1);
-            island.put("islandTimeout", 3600);      // 摘要态消失时间（秒）
-            island.put("bigIslandArea", big);
-            island.put("smallIslandArea", small);
-
-            JSONObject base = new JSONObject();
-            base.put("title", statusText + " " + pct + "%");
-            base.put("content", detailText);
-            base.put("colorTitle", "#FFC400");
-            base.put("type", 2);
-
-            p2.put("param_island", island);
-            p2.put("baseInfo", base);
-
-            JSONObject root = new JSONObject();
-            root.put("param_v2", p2);
-            return root.toString();
-        } catch (Exception e) {
-            return "{}";
-        }
     }
 }
