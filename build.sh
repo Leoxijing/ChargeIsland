@@ -24,12 +24,16 @@ echo "[1/7] aapt2 compile resources"
 "$BT/aapt2" compile --dir "$BASE/res" -o "$BUILD/res.zip"
 
 echo "[2/7] aapt2 link"
+ASSETS_ARG=""
+if [ -d "$BASE/assets" ]; then ASSETS_ARG="-A $BASE/assets"; fi
+# shellcheck disable=SC2086
 "$BT/aapt2" link -o "$BUILD/base.apk" \
   -I "$ANDROID_JAR" \
   --manifest "$BASE/AndroidManifest.xml" \
   --min-sdk-version 31 --target-sdk-version 34 \
   --java "$BUILD/gen" \
   --auto-add-overlay \
+  $ASSETS_ARG \
   "$BUILD/res.zip"
 
 echo "[3/7] javac"

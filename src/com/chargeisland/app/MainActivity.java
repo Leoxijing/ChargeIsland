@@ -20,7 +20,7 @@ public class MainActivity extends Activity {
 
     private TextView tvLevel, tvStatus, tvPower, tvTemp, tvVoltage, tvEta, tvPlug, tvHint, tvPromoted;
     private BatteryCurveView curve;
-    private Button btnToggle, btnLiveSettings, btnCheckUpdate;
+    private Button btnToggle, btnLiveSettings, btnCheckUpdate, btnChangelog;
 
     private final BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
         @Override
@@ -47,6 +47,7 @@ public class MainActivity extends Activity {
         btnToggle = findViewById(R.id.btnToggle);
         btnLiveSettings = findViewById(R.id.btnLiveSettings);
         btnCheckUpdate = findViewById(R.id.btnCheckUpdate);
+        btnChangelog = findViewById(R.id.btnChangelog);
 
         btnToggle.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -65,15 +66,24 @@ public class MainActivity extends Activity {
         btnCheckUpdate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String ver;
-                try {
-                    ver = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
-                } catch (Exception e) {
-                    ver = "0";
-                }
-                UpdateChecker.check(MainActivity.this, ver);
+                UpdateChecker.check(MainActivity.this, true);
             }
         });
+
+        btnChangelog.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, ChangelogActivity.class));
+            }
+        });
+
+        // 启动静默自动检查更新（机制对齐 VideoSplitter）：静默进行，发现新版才弹窗
+        btnCheckUpdate.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                UpdateChecker.check(MainActivity.this, false);
+            }
+        }, 1200);
 
         if (Build.VERSION.SDK_INT >= 33
                 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)
@@ -84,8 +94,19 @@ public class MainActivity extends Activity {
     }
 
     @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        // 更新下载完成通知点击 → 直接拉起安装
+        if (intent != null && intent.getBooleanExtra("install_update", false)) {
+            UpdateChecker.installApk(this, UpdateChecker.updateApkFile(this));
+        }
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
+        // 安装授权跳设置返回后自动继续安装
+        UpdateChecker.resumePendingInstall(this);
         try {
             registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         } catch (Exception ignored) {
