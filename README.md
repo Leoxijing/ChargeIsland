@@ -38,6 +38,7 @@ bash build.sh
 
 | 版本 | versionCode | 说明 |
 |------|-------------|------|
+| 1.4  | 5           | 修复 Promoted 提升请求写入方式（extras key `android.requestPromotedOngoing`，API 36+），实时动态可上背屏 |
 | 1.3  | 4           | 背屏/锁屏可见性修复（VISIBILITY_PUBLIC + 新通知渠道）、GitHub 联网检查更新 |
 | 1.2  | 3           | 实时动态全套 API：资格检查、提升状态跟踪、设置入口、状态展示 |
 | 1.1  | 2           | Promoted Notifications（Android 16 实时动态）通道 |

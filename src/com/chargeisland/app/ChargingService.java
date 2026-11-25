@@ -296,14 +296,11 @@ public class ChargingService extends android.app.Service {
                 .setOngoing(ongoing)
                 .setOnlyAlertOnce(true)
                 .setShowWhen(true);
-        // Android 16 Promoted Notifications：请求提升为实时动态；低版本系统无此方法时静默跳过
-        if (ongoing) {
-            try {
-                java.lang.reflect.Method m =
-                        Notification.Builder.class.getMethod("setRequestPromotedOngoing", boolean.class);
-                m.invoke(builder, true);
-            } catch (Exception ignored) {
-            }
+        // Android 16 Promoted Notifications：framework Builder 没有 setRequestPromotedOngoing 方法
+        //（反射调用会静默失败导致提升请求从未写入），官方要求写入 extras key，字面值同
+        // androidx NotificationCompat.EXTRA_REQUEST_PROMOTED_ONGOING；仅 API 36+ 写入。
+        if (ongoing && Build.VERSION.SDK_INT >= 36) {
+            builder.getExtras().putBoolean("android.requestPromotedOngoing", true);
         }
         return builder.build();
     }
