@@ -174,17 +174,19 @@ public class ChargingService extends android.app.Service {
         else if (plugged == BatteryManager.BATTERY_PLUGGED_USB) plugLabel = "USB 充电";
         else plugLabel = "未插入充电器";
 
-        // 通知样式（v2.0，按用户参考图）：
-        // - 标题 = 状态 · 电量（如 "充电中 · 54%"）
-        // - 第二行（参考图"电量"位置）= 充电功率
-        // - 第三行 = 预计充满时间/状态说明；图标回退静态闪电
+        // 通知样式（v2.1，按用户指定格式）：
+        // - 第一行（标题）= 温度 · 功率（如 "26℃ · 22.2W"）
+        // - 第二行 = 状态 · 电量（如 "充电中 · 54%"）
+        // - 第三行 = 预计充满时间/状态说明；图标为静态闪电
         String statusLabel;
         if (!charging) statusLabel = "未充电";
         else if (full) statusLabel = "已充满";
         else statusLabel = "充电中";
 
-        String line2 = (charging && !full && watts >= 0)
-                ? String.format("%.1f W", watts) : "—";
+        String powerPart = (charging && !full && watts >= 0)
+                ? String.format("%.1fW", watts) : "—";
+        String notifTitle = String.format("%.0f℃", tempDeci / 10f) + " · " + powerPart;
+        String line2 = statusLabel + " · " + pct + "%";
 
         String line3;
         if (!charging) {
@@ -208,8 +210,6 @@ public class ChargingService extends android.app.Service {
                 line3 = "正在计算预计充满时间…";
             }
         }
-
-        String notifTitle = statusLabel + " · " + pct + "%";
 
         // 每次轮询都刷新通知（对齐 VideoSplitter：高频 notify，不因内容未变而跳过，
         // 让系统持续重新评估 Promoted 提升资格）
