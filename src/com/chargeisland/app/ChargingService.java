@@ -76,7 +76,7 @@ public class ChargingService extends android.app.Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         ChargeDataStore.serviceRunning = true;
-        Notification base = buildNotification("读取中…", "正在获取充电状态…", "", false, 0);
+        Notification base = buildNotification("读取中…", "正在获取充电状态…", "", true, false, 0);
         if (Build.VERSION.SDK_INT >= 34) {
             startForeground(NOTIFY_ID, base, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
         } else {
@@ -232,7 +232,8 @@ public class ChargingService extends android.app.Service {
 
         // 每次轮询都刷新通知（对齐 VideoSplitter：高频 notify，不因内容未变而跳过，
         // 让系统持续重新评估 Promoted 提升资格）
-        Notification notification = buildNotification(notifTitle, line2, line3, charging, pct);
+        Notification notification = buildNotification(notifTitle, line2, line3,
+                status == BatteryManager.BATTERY_STATUS_CHARGING, charging, pct);
         nm.notify(NOTIFY_ID, notification);
         updatePromotedState(notification);
     }
@@ -288,7 +289,7 @@ public class ChargingService extends android.app.Service {
     }
 
     private Notification buildNotification(String title, String line2, String line3,
-                                           boolean ongoing, int pct) {
+                                           boolean chargingNow, boolean ongoing, int pct) {
         Intent open = new Intent(this, MainActivity.class);
         open.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pi = PendingIntent.getActivity(this, 0, open,
@@ -300,7 +301,9 @@ public class ChargingService extends android.app.Service {
 
         // 字段对齐 VideoSplitter StatusBarProgress.build：category/ticker/onlyAlertOnce/PUBLIC 全套
         Notification.Builder builder = new Notification.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_stat_charge)
+                // 充电中显示闪电图标；未充电（含已充满）用全透明 mask，通知栏不显示图标
+                .setSmallIcon(chargingNow ? R.drawable.ic_stat_charge
+                                          : R.drawable.ic_stat_transparent)
                 .setContentTitle(title)
                 .setContentText(summary)
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
