@@ -19,6 +19,8 @@ public class MainActivity extends Activity {
     private static final int REQ_POST_NOTIFICATIONS = 100;
 
     private TextView tvLevel, tvStatus, tvPower, tvTemp, tvVoltage, tvEta, tvEtaLabel, tvPlug, tvHint, tvPromoted;
+    private TextView tvPowerMini, tvEtaMini, tvEtaLabelMini, tvTempMini, tvVoltageMini;
+    private View miniBar;
     private BatteryCurveView curve;
     private Button btnToggle, btnLiveSettings, btnCheckUpdate, btnChangelog;
 
@@ -49,6 +51,12 @@ public class MainActivity extends Activity {
         btnLiveSettings = findViewById(R.id.btnLiveSettings);
         btnCheckUpdate = findViewById(R.id.btnCheckUpdate);
         btnChangelog = findViewById(R.id.btnChangelog);
+        miniBar = findViewById(R.id.miniBar);
+        tvPowerMini = findViewById(R.id.tvPowerMini);
+        tvEtaLabelMini = findViewById(R.id.tvEtaLabelMini);
+        tvEtaMini = findViewById(R.id.tvEtaMini);
+        tvTempMini = findViewById(R.id.tvTempMini);
+        tvVoltageMini = findViewById(R.id.tvVoltageMini);
 
         // 电量大字随滚动缩小并常驻头部（84sp→28sp，滚动 140dp 完成，回到顶部恢复）
         final android.view.View header = findViewById(R.id.header);
@@ -61,6 +69,15 @@ public class MainActivity extends Activity {
                 tvLevel.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 84f - 56f * p);
                 header.setPadding(header.getPaddingLeft(), (int) ((28 - 18 * p) * d),
                         header.getPaddingRight(), (int) ((4 - 2 * p) * d));
+                // 四数据条：下滑 30% 后淡入并常驻头部，回到顶部隐藏
+                if (p > 0.3f) {
+                    if (miniBar.getVisibility() != View.VISIBLE) {
+                        miniBar.setVisibility(View.VISIBLE);
+                    }
+                    miniBar.setAlpha((p - 0.3f) / 0.7f);
+                } else if (miniBar.getVisibility() == View.VISIBLE) {
+                    miniBar.setVisibility(View.GONE);
+                }
             }
         });
 
@@ -218,10 +235,10 @@ public class MainActivity extends Activity {
         String levelText = pct + "%";
         tvLevel.setText(levelText);
         // v3.2：电量大数字渐变着色（黄 → 橙），按实际文字宽度铺设 shader
-        float levelW = tvLevel.getPaint().measureText(levelText);
+        // shader 按屏幕宽度铺开：字号随滚动变化时渐变映射保持稳定
+        int sw = getResources().getDisplayMetrics().widthPixels;
         tvLevel.getPaint().setShader(new android.graphics.LinearGradient(
-                0, 0, Math.max(levelW, 1f), 0,
-                0xFFFFC400, 0xFFFF8A00,
+                0, 0, sw, 0, 0xFFFFC400, 0xFFFF8A00,
                 android.graphics.Shader.TileMode.CLAMP));
         // v3.2：状态胶囊徽章——文字色随状态切换（背景为 pill_badge）
         if (!charging) {
@@ -286,6 +303,13 @@ public class MainActivity extends Activity {
         else if (plugged == BatteryManager.BATTERY_PLUGGED_USB) plug = "USB 充电";
         else plug = "未插入充电器";
         tvPlug.setText(plug);
+
+        // 缩小版数据条与主卡片同步
+        tvPowerMini.setText(tvPower.getText());
+        tvEtaLabelMini.setText(tvEtaLabel.getText());
+        tvEtaMini.setText(tvEta.getText());
+        tvTempMini.setText(tvTemp.getText());
+        tvVoltageMini.setText(tvVoltage.getText());
 
         updatePromotedUi();
         curve.invalidate();

@@ -52,6 +52,114 @@
             android:text="—"
             android:textColor="#7C8AA0"
             android:textSize="14sp" />
+
+        <!-- 缩小版四数据条：下滑时淡入并常驻头部 -->
+        <LinearLayout
+            android:id="@+id/miniBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:baselineAligned="false"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="功率"
+                    android:textColor="#7C8AA0"
+                    android:textSize="10sp" />
+
+                <TextView
+                    android:id="@+id/tvPowerMini"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="—"
+                    android:textColor="#FFD84D"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvEtaLabelMini"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="预计充满"
+                    android:textColor="#7C8AA0"
+                    android:textSize="10sp" />
+
+                <TextView
+                    android:id="@+id/tvEtaMini"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="—"
+                    android:textColor="#E8EDF5"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="电池温度"
+                    android:textColor="#7C8AA0"
+                    android:textSize="10sp" />
+
+                <TextView
+                    android:id="@+id/tvTempMini"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="—"
+                    android:textColor="#E8EDF5"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="电压"
+                    android:textColor="#7C8AA0"
+                    android:textSize="10sp" />
+
+                <TextView
+                    android:id="@+id/tvVoltageMini"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="—"
+                    android:textColor="#E8EDF5"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
     </LinearLayout>
 
     <ScrollView
