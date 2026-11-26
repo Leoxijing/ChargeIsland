@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 全透明通知图标：smallIcon 为 alpha mask，mask 全透明时通知栏不显示图标。 -->
+<!-- 近透明通知图标：smallIcon 为 alpha mask。
+     alpha=0（全透明）会被系统回退为应用图标（状态栏重新出现 APP 图标），
+     故用 alpha=1（1/255，肉眼不可见）绕过回退检查，渲染结果视觉上仍为空白。 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
     <path
-        android:fillColor="#00000000"
+        android:fillColor="#01000000"
         android:pathData="M0,0h24v24h-24z" />
 </vector>
