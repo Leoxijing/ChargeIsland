@@ -15,23 +15,6 @@
         android:paddingBottom="24dp">
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:letterSpacing="0.08"
-            android:text="CHARGE ISLAND"
-            android:textColor="#5D6A80"
-            android:textSize="11sp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:text="充电进度岛"
-            android:textColor="#F2F5FA"
-            android:textSize="22sp"
-            android:textStyle="bold" />
-
-        <TextView
             android:id="@+id/tvLevel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
