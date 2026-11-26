@@ -6,6 +6,9 @@
 
 - **充电监控前台服务**：电量、充电状态、功率（电压 × 电流估算）、电池温度、预计充满时间
 - **电量充电曲线**：进程内采样绘制
+- **后台保活**：插电（`ACTION_POWER_CONNECTED`）与开机（`BOOT_COMPLETED`）自动拉起监控服务，无需手动确认；电池优化豁免引导提升后台存活
+- **主页现代化 UI**：深空渐变背景、圆角卡片、黄→橙渐变电量大字、渐变主按钮
+- **通知样式**：标题位显示充电功率（无"充电中"字样），详情行「电量 · 预计 · 电池温度」+ 进度条
 - **Android 16 实时动态**：API 36+ 写入官方 extras key `android.requestPromotedOngoing` 请求提升，`hasPromotableCharacteristics` / `FLAG_PROMOTED_ONGOING` / `canPostPromotedNotifications` 全套状态诊断，一键跳转系统设置
 - **通知形态对齐 VideoSplitter**：纯标准通知（不写厂商私有 extras）、`CATEGORY_PROGRESS` + `BigTextStyle` + 进度条 + `VISIBILITY_PUBLIC`、1 秒高频刷新
 - **锁屏 / 息屏 / 背屏展示**：通知渠道与通知均设为 `VISIBILITY_PUBLIC`；配合系统「设置 → 妙享背屏 → 背屏通知」开关同步显示
@@ -39,6 +42,7 @@ bash build.sh
 
 | 版本 | versionCode | 说明 |
 |------|-------------|------|
+| 1.7  | 8           | 主页现代化 UI、后台保活（插电/开机自动启动 + 电池优化豁免）、通知样式改版（标题=功率、电量温度换位） |
 | 1.6  | 7           | 通知形态完全对齐 VideoSplitter：移除厂商私有 extras、补 CATEGORY_PROGRESS/ticker、1 秒高频刷新、渠道 LOW |
 | 1.5  | 6           | 应用内更新对齐 VideoSplitter（version.json 检查/前台服务下载/一键安装）、更新日志页（三层数据） |
 | 1.4  | 5           | 修复 Promoted 提升请求写入方式（extras key `android.requestPromotedOngoing`，API 36+），实时动态可上背屏 |

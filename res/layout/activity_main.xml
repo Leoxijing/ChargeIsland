@@ -2,39 +2,54 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0D1117"
+    android:background="@drawable/bg_gradient"
     android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:paddingStart="20dp"
+        android:paddingTop="28dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="24dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:letterSpacing="0.08"
+            android:text="CHARGE ISLAND"
+            android:textColor="#5D6A80"
+            android:textSize="11sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
             android:text="充电进度岛"
-            android:textColor="#8B949E"
-            android:textSize="14sp" />
+            android:textColor="#F2F5FA"
+            android:textSize="22sp"
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tvLevel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="14dp"
+            android:includeFontPadding="false"
             android:text="—"
             android:textColor="#FFC400"
-            android:textSize="76sp"
+            android:textSize="84sp"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tvStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
             android:text="读取中…"
-            android:textColor="#E6EDF3"
-            android:textSize="20sp" />
+            android:textColor="#E8EDF5"
+            android:textSize="19sp" />
 
         <TextView
             android:id="@+id/tvPlug"
@@ -42,65 +57,66 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:text="—"
-            android:textColor="#8B949E"
+            android:textColor="#7C8AA0"
             android:textSize="14sp" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="22dp"
+            android:baselineAligned="false"
             android:orientation="horizontal">
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:background="#161B22"
+                android:background="@drawable/card_bg"
                 android:orientation="vertical"
-                android:padding="14dp">
+                android:padding="16dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="功率"
-                    android:textColor="#8B949E"
+                    android:textColor="#7C8AA0"
                     android:textSize="12sp" />
 
                 <TextView
                     android:id="@+id/tvPower"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="6dp"
                     android:text="—"
-                    android:textColor="#E6EDF3"
-                    android:textSize="22sp"
+                    android:textColor="#FFD84D"
+                    android:textSize="24sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
+                android:layout_marginStart="12dp"
                 android:layout_weight="1"
-                android:background="#161B22"
+                android:background="@drawable/card_bg"
                 android:orientation="vertical"
-                android:padding="14dp">
+                android:padding="16dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="预计充满"
-                    android:textColor="#8B949E"
+                    android:textColor="#7C8AA0"
                     android:textSize="12sp" />
 
                 <TextView
                     android:id="@+id/tvEta"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="6dp"
                     android:text="—"
-                    android:textColor="#E6EDF3"
-                    android:textSize="22sp"
+                    android:textColor="#E8EDF5"
+                    android:textSize="24sp"
                     android:textStyle="bold" />
             </LinearLayout>
         </LinearLayout>
@@ -108,59 +124,60 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="12dp"
+            android:baselineAligned="false"
             android:orientation="horizontal">
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:background="#161B22"
+                android:background="@drawable/card_bg"
                 android:orientation="vertical"
-                android:padding="14dp">
+                android:padding="16dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="电池温度"
-                    android:textColor="#8B949E"
+                    android:textColor="#7C8AA0"
                     android:textSize="12sp" />
 
                 <TextView
                     android:id="@+id/tvTemp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="6dp"
                     android:text="—"
-                    android:textColor="#E6EDF3"
-                    android:textSize="22sp"
+                    android:textColor="#E8EDF5"
+                    android:textSize="24sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
+                android:layout_marginStart="12dp"
                 android:layout_weight="1"
-                android:background="#161B22"
+                android:background="@drawable/card_bg"
                 android:orientation="vertical"
-                android:padding="14dp">
+                android:padding="16dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="电压"
-                    android:textColor="#8B949E"
+                    android:textColor="#7C8AA0"
                     android:textSize="12sp" />
 
                 <TextView
                     android:id="@+id/tvVoltage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="6dp"
                     android:text="—"
-                    android:textColor="#E6EDF3"
-                    android:textSize="22sp"
+                    android:textColor="#E8EDF5"
+                    android:textSize="24sp"
                     android:textStyle="bold" />
             </LinearLayout>
         </LinearLayout>
@@ -168,33 +185,33 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="22dp"
+            android:layout_marginTop="24dp"
             android:text="电量曲线"
-            android:textColor="#8B949E"
+            android:textColor="#7C8AA0"
             android:textSize="13sp" />
 
         <com.chargeisland.app.BatteryCurveView
             android:id="@+id/curve"
             android:layout_width="match_parent"
             android:layout_height="180dp"
-            android:layout_marginTop="6dp"
-            android:background="#161B22" />
+            android:layout_marginTop="8dp"
+            android:background="@drawable/card_bg" />
 
         <Button
             android:id="@+id/btnToggle"
             android:layout_width="match_parent"
-            android:layout_height="54dp"
-            android:layout_marginTop="24dp"
-            android:background="#FFC400"
+            android:layout_height="56dp"
+            android:layout_marginTop="26dp"
+            android:background="@drawable/btn_primary_bg"
             android:text="开始监控充电进度"
-            android:textColor="#0D1117"
+            android:textColor="#10151F"
             android:textSize="16sp"
             android:textStyle="bold" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
+            android:layout_marginTop="16dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
@@ -204,46 +221,46 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="实时动态：检测中…"
-                android:textColor="#8B949E"
+                android:textColor="#7C8AA0"
                 android:textSize="13sp" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="10dp"
             android:orientation="horizontal">
 
             <Button
                 android:id="@+id/btnLiveSettings"
                 android:layout_width="0dp"
-                android:layout_height="42dp"
+                android:layout_height="44dp"
                 android:layout_weight="1"
-                android:background="#21262D"
+                android:background="@drawable/btn_ghost_bg"
                 android:text="实时动态设置"
-                android:textColor="#58A6FF"
+                android:textColor="#6FA8FF"
                 android:textSize="11sp" />
 
             <Button
                 android:id="@+id/btnCheckUpdate"
                 android:layout_width="0dp"
-                android:layout_height="42dp"
-                android:layout_marginStart="8dp"
+                android:layout_height="44dp"
+                android:layout_marginStart="10dp"
                 android:layout_weight="1"
-                android:background="#21262D"
+                android:background="@drawable/btn_ghost_bg"
                 android:text="检查更新"
-                android:textColor="#58A6FF"
+                android:textColor="#6FA8FF"
                 android:textSize="11sp" />
 
             <Button
                 android:id="@+id/btnChangelog"
                 android:layout_width="0dp"
-                android:layout_height="42dp"
-                android:layout_marginStart="8dp"
+                android:layout_height="44dp"
+                android:layout_marginStart="10dp"
                 android:layout_weight="1"
-                android:background="#21262D"
+                android:background="@drawable/btn_ghost_bg"
                 android:text="更新日志"
-                android:textColor="#58A6FF"
+                android:textColor="#6FA8FF"
                 android:textSize="11sp" />
         </LinearLayout>
 
@@ -251,10 +268,11 @@
             android:id="@+id/tvHint"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:layout_marginBottom="16dp"
-            android:text="开启后常驻通知并请求实时动态提升（纯标准通知，对齐 VideoSplitter）。若背屏未显示充电进度：请到 设置 → 妙享背屏 → 背屏通知，开启「背屏通知」与「显示通知详情」。"
-            android:textColor="#8B949E"
+            android:layout_marginTop="14dp"
+            android:layout_marginBottom="8dp"
+            android:lineSpacingExtra="3dp"
+            android:text="开启后常驻通知并请求实时动态提升；插电或开机时自动启动，无需手动确认。若背屏未显示充电进度：请到 设置 → 妙享背屏 → 背屏通知，开启「背屏通知」与「显示通知详情」。"
+            android:textColor="#7C8AA0"
             android:textSize="13sp" />
     </LinearLayout>
 </ScrollView>

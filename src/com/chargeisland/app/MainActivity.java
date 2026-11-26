@@ -91,6 +91,20 @@ public class MainActivity extends Activity {
             requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS},
                     REQ_POST_NOTIFICATIONS);
         }
+
+        // 现代化视觉：电量大字黄→橙渐变（宽度就绪后再挂 shader）
+        tvLevel.post(new Runnable() {
+            @Override
+            public void run() {
+                int w = tvLevel.getWidth();
+                if (w > 0) {
+                    tvLevel.getPaint().setShader(new android.graphics.LinearGradient(
+                            0, 0, w, 0, 0xFFFFD84D, 0xFFFF8F00,
+                            android.graphics.Shader.TileMode.CLAMP));
+                    tvLevel.invalidate();
+                }
+            }
+        });
     }
 
     @Override
@@ -132,10 +146,33 @@ public class MainActivity extends Activity {
             tvHint.setText("已停止。开启后将常驻通知并实时展示充电进度。");
         } else {
             startForegroundService(svc);
-            tvHint.setText("监控中：通知/锁屏/背屏将实时显示充电进度。");
+            tvHint.setText("监控中：通知/锁屏/背屏将实时显示充电进度；插电/开机自动启动。");
+            offerBatteryExemption();
         }
         // 服务启动是异步的，稍后刷新按钮状态
         btnToggle.postDelayed(this::updateToggleState, 400);
+    }
+
+    /** v1.7 后台保活：未豁免电池优化时引导一次（豁免后插电自动拉起与后台轮询更可靠）。 */
+    private void offerBatteryExemption() {
+        try {
+            android.os.PowerManager pm = getSystemService(android.os.PowerManager.class);
+            if (pm == null || pm.isIgnoringBatteryOptimizations(getPackageName())) return;
+            new android.app.AlertDialog.Builder(this)
+                    .setTitle("开启后台保活")
+                    .setMessage("允许本应用不受电池限制，插电时可自动启动、后台持续刷新充电进度。")
+                    .setPositiveButton("去设置", (d, w) -> {
+                        try {
+                            startActivity(new Intent(
+                                    android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                                    android.net.Uri.parse("package:" + getPackageName())));
+                        } catch (Exception ignored) {
+                        }
+                    })
+                    .setNegativeButton("暂不", null)
+                    .show();
+        } catch (Exception ignored) {
+        }
     }
 
     private void updateToggleState() {

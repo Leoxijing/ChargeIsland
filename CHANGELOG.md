@@ -6,6 +6,12 @@ APP 内可通过「检查更新」获取最新版本。
 
 ---
 
+## v1.7 (versionCode 8)
+- **主页 UI 现代化**：深空渐变背景、圆角卡片（18dp + 描边）、黄→橙渐变电量大字、渐变圆角主按钮、幽灵按钮组、排版与间距重排
+- **后台保活**：新增 `PowerReceiver`——插电（ACTION_POWER_CONNECTED）与开机（BOOT_COMPLETED / LOCKED_BOOT_COMPLETED）时自动拉起充电监控服务，无需手动确认；启动监控时若未豁免电池优化，弹一次「后台保活」引导（REQUEST_IGNORE_BATTERY_OPTIMIZATIONS）
+- **通知样式改版**：标题去掉"充电中"字样、改为显示充电功率（图标位）；电量与温度换位——电量移入详情行（电量 · 预计 · 电池温度）
+- **校验通过**：编译成功、aapt 版本号 8/1.7
+
 ## v1.6 (versionCode 7)
 - **通知形态完全对齐 VideoSplitter（已验证可上背屏）**：移除 `miui.focus.param`/`miui.focus.pics` 厂商私有参数（VideoSplitter 源码明确"不写入任何厂商私有 extras"，带厂商参数的通知疑似不参与实时动态→背屏映射）；补上缺失的 `setCategory(CATEGORY_PROGRESS)` 与 `setTicker`；promoted extras 改为 API 36+ 无条件写入（原 `ongoing` 附加条件导致首条前台通知不带提升请求）
 - **更新频率对齐**：轮询 3 秒 → 1 秒，移除"内容未变不刷新"去重，每次轮询都 notify，让系统持续重新评估提升资格

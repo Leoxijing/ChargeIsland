@@ -202,20 +202,26 @@ public class ChargingService extends android.app.Service {
         String powerText = watts >= 0 ? String.format("%.1f W", watts) : "—";
         String tempText = String.format("%.1f ℃", tempDeci / 10f);
 
-        // 通知正文
+        // 通知正文（v1.7 样式）：
+        // - 标题（小图标旁）= 充电功率，去掉"充电中"字样
+        // - 电量与温度换位：电量从原标题位移到温度所在的详情行（电量在前、温度在后）
+        String notifTitle;
         StringBuilder detail = new StringBuilder();
-        if (charging) {
-            detail.append(powerText);
-            if (watts >= 0) detail.append(" · ");
-            detail.append(etaText);
+        if (charging && !full) {
+            notifTitle = watts >= 0 ? powerText : statusText; // 功率未知时兜底
+            detail.append(pct).append("% · ").append(etaText);
+        } else if (full) {
+            notifTitle = "已充满";
+            detail.append(pct).append("%");
         } else {
-            detail.append(plugLabel);
+            notifTitle = "未充电";
+            detail.append(pct).append("% · ").append(plugLabel);
         }
         detail.append(" · 电池 ").append(tempText);
 
         // 每次轮询都刷新通知（对齐 VideoSplitter：高频 notify，不因内容未变而跳过，
         // 让系统持续重新评估 Promoted 提升资格）
-        Notification notification = buildNotification(statusText + " " + pct + "%", detail.toString(), charging, pct);
+        Notification notification = buildNotification(notifTitle, detail.toString(), charging, pct);
         nm.notify(NOTIFY_ID, notification);
         updatePromotedState(notification);
     }
