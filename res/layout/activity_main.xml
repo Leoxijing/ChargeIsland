@@ -17,7 +17,7 @@
         android:paddingEnd="20dp"
         android:paddingBottom="4dp">
 
-        <!-- 大数字 + 右侧 APP 徽章（下滑时与数字同步缩小） -->
+        <!-- 大数字 + 右侧四数据条（2×2 常驻，随数字同步缩小） -->
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -34,16 +34,127 @@
                 android:textSize="84sp"
                 android:textStyle="bold" />
 
-            <ImageView
-                android:id="@+id/ivBadge"
-                android:layout_width="76dp"
-                android:layout_height="76dp"
+            <LinearLayout
+                android:id="@+id/miniBar"
+                android:layout_width="170dp"
+                android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
-                android:background="@drawable/badge_bg"
-                android:contentDescription="充电进度岛徽章"
-                android:padding="8dp"
-                android:src="@drawable/ic_badge_ring" />
+                android:baselineAligned="false"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:baselineAligned="false"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="功率"
+                            android:textColor="#7C8AA0"
+                            android:textSize="10sp" />
+
+                        <TextView
+                            android:id="@+id/tvPowerMini"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="—"
+                            android:textColor="#FFD84D"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvEtaLabelMini"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="预计充满"
+                            android:textColor="#7C8AA0"
+                            android:textSize="10sp" />
+
+                        <TextView
+                            android:id="@+id/tvEtaMini"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="—"
+                            android:textColor="#E8EDF5"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:baselineAligned="false"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="电池温度"
+                            android:textColor="#7C8AA0"
+                            android:textSize="10sp" />
+
+                        <TextView
+                            android:id="@+id/tvTempMini"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="—"
+                            android:textColor="#E8EDF5"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="电压"
+                            android:textColor="#7C8AA0"
+                            android:textSize="10sp" />
+
+                        <TextView
+                            android:id="@+id/tvVoltageMini"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="—"
+                            android:textColor="#E8EDF5"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
         </RelativeLayout>
 
         <TextView
@@ -70,114 +181,6 @@
             android:text="—"
             android:textColor="#7C8AA0"
             android:textSize="14sp" />
-
-        <!-- 缩小版四数据条：下滑时淡入并常驻头部 -->
-        <LinearLayout
-            android:id="@+id/miniBar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:baselineAligned="false"
-            android:orientation="horizontal"
-            android:visibility="gone">
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="功率"
-                    android:textColor="#7C8AA0"
-                    android:textSize="10sp" />
-
-                <TextView
-                    android:id="@+id/tvPowerMini"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:text="—"
-                    android:textColor="#FFD84D"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/tvEtaLabelMini"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="预计充满"
-                    android:textColor="#7C8AA0"
-                    android:textSize="10sp" />
-
-                <TextView
-                    android:id="@+id/tvEtaMini"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:text="—"
-                    android:textColor="#E8EDF5"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="电池温度"
-                    android:textColor="#7C8AA0"
-                    android:textSize="10sp" />
-
-                <TextView
-                    android:id="@+id/tvTempMini"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:text="—"
-                    android:textColor="#E8EDF5"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="电压"
-                    android:textColor="#7C8AA0"
-                    android:textSize="10sp" />
-
-                <TextView
-                    android:id="@+id/tvVoltageMini"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:text="—"
-                    android:textColor="#E8EDF5"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-        </LinearLayout>
     </LinearLayout>
 
     <ScrollView

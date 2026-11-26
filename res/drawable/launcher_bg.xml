@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- v3.7 APP 徽章底座：圆角方、深空渐变、黄色细描边 -->
+<!-- v3.8 启动图标背景：深空渐变（adaptive icon 底层，形状由系统遮罩裁切） -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
     <gradient
         android:angle="135"
         android:endColor="#0E141E"
         android:startColor="#1C2436" />
-    <stroke
-        android:width="1.5dp"
-        android:color="#59FFC400" />
-    <corners android:radius="22dp" />
 </shape>

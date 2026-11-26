@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- v3.8 启动图标：深空渐变底 + 进度环闪电前景（与主页徽章同款设计语言） -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@drawable/launcher_bg" />
+    <foreground android:drawable="@drawable/ic_badge_ring" />
+</adaptive-icon>
