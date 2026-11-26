@@ -50,6 +50,20 @@ public class MainActivity extends Activity {
         btnCheckUpdate = findViewById(R.id.btnCheckUpdate);
         btnChangelog = findViewById(R.id.btnChangelog);
 
+        // 电量大字随滚动缩小并常驻头部（84sp→28sp，滚动 140dp 完成，回到顶部恢复）
+        final android.view.View header = findViewById(R.id.header);
+        android.widget.ScrollView contentScroll = findViewById(R.id.contentScroll);
+        contentScroll.setOnScrollChangeListener(new View.OnScrollChangeListener() {
+            @Override
+            public void onScrollChange(View v, int scrollX, int scrollY, int oldX, int oldY) {
+                float d = getResources().getDisplayMetrics().density;
+                float p = Math.min(scrollY / (140f * d), 1f);
+                tvLevel.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 84f - 56f * p);
+                header.setPadding(header.getPaddingLeft(), (int) ((28 - 18 * p) * d),
+                        header.getPaddingRight(), (int) ((4 - 2 * p) * d));
+            }
+        });
+
         btnToggle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -99,8 +113,10 @@ public class MainActivity extends Activity {
             public void run() {
                 int w = tvLevel.getWidth();
                 if (w > 0) {
+                    // shader 按屏幕宽度铺开：字号随滚动变化时渐变映射保持稳定
+                    int sw = getResources().getDisplayMetrics().widthPixels;
                     tvLevel.getPaint().setShader(new android.graphics.LinearGradient(
-                            0, 0, w, 0, 0xFFFFD84D, 0xFFFF8F00,
+                            0, 0, sw, 0, 0xFFFFD84D, 0xFFFF8F00,
                             android.graphics.Shader.TileMode.CLAMP));
                     tvLevel.invalidate();
                 }
