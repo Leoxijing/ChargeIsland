@@ -349,9 +349,11 @@ public class ChargingService extends android.app.Service {
                 .setShowWhen(true);
         // Android 16 Promoted Notifications：framework Builder 没有 setRequestPromotedOngoing 方法
         //（反射调用会静默失败导致提升请求从未写入），官方要求写入 extras key，字面值同
-        // androidx NotificationCompat.EXTRA_REQUEST_PROMOTED_ONGOING；API 36+ 无条件写入
-        //（对齐 VideoSplitter：不附加 ongoing 条件，首条前台通知即携带提升请求）。
-        if (Build.VERSION.SDK_INT >= 36) {
+        // androidx NotificationCompat.EXTRA_REQUEST_PROMOTED_ONGOING。
+        // v2.8：仅充电（ongoing）时写入——未充电也带请求会让通知进入"提升候选/岛接管"形态，
+        // 澎湃以应用图标渲染状态栏（smallIcon 被忽略，温度图标不显示）；去掉请求后回落普通
+        // 通知渲染，smallIcon（温度文字）正常显示。充电态带请求已实测：提升后温度图标生效。
+        if (ongoing && Build.VERSION.SDK_INT >= 36) {
             builder.getExtras().putBoolean("android.requestPromotedOngoing", true);
         }
         return builder.build();
