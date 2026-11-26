@@ -9,11 +9,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ServiceInfo;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.Typeface;
-import android.graphics.drawable.Icon;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Handler;
@@ -38,9 +33,6 @@ public class ChargingService extends android.app.Service {
     private Handler handler;
     private Runnable pollRunnable;
     private boolean registered = false;
-    // 状态栏温度文字图标缓存：温度变化 ≥1℃ 才重绘，其余复用同一 Icon
-    private Icon tempIconCache;
-    private int tempIconTempTenth = Integer.MIN_VALUE;
 
     private final BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
         @Override
@@ -296,27 +288,17 @@ public class ChargingService extends android.app.Service {
     }
 
     /**
-     * 把当前温度画成 alpha-only 文字图标（如 "26°"）作为 smallIcon——状态栏图标区
-     * 只渲染 alpha mask（单色着色），文字形状会以系统配色显示在时间旁；文字像素
-     * alpha=255 非全透明，不会触发系统"全透明回退为应用图标"的检查。
-     * 温度变化 ≥1℃ 才重绘，避免状态栏每秒闪烁。
+     * 温度 → 预制资源型图标 id（ic_temp_0..60 / ic_temp_unknown）。
+     * v2.9：澎湃普通通知渲染只认资源型 smallIcon（setSmallIcon(int)→ResourceIcon），
+     * 位图对象型（Icon.createWithBitmap）会被回退为应用图标——v2.7/2.8 实测：
+     * 提升态认位图，普通态回退；资源型是 2.3 时代普通态正常显示闪电的同路径。
+     * 找不到资源返回 0（调用方回退透明资源）。
      */
-    private Icon getTempIcon(int tempTenth) {
-        int rounded = tempTenth <= 0 ? Integer.MIN_VALUE : Math.round(tempTenth / 10f);
-        if (tempIconCache != null && rounded == tempIconTempTenth) return tempIconCache;
-        String text = rounded == Integer.MIN_VALUE ? "--°" : rounded + "°";
-        Bitmap bmp = Bitmap.createBitmap(96, 48, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bmp);
-        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        paint.setColor(0xFFFFFFFF);
-        paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
-        paint.setTextSize(36f);
-        paint.setTextAlign(Paint.Align.CENTER);
-        float baseline = bmp.getHeight() / 2f - (paint.descent() + paint.ascent()) / 2f;
-        canvas.drawText(text, bmp.getWidth() / 2f, baseline, paint);
-        tempIconCache = Icon.createWithBitmap(bmp);
-        tempIconTempTenth = rounded;
-        return tempIconCache;
+    private int resolveTempRes(int tempTenth) {
+        int rounded = tempTenth <= 0 ? -1 : Math.round(tempTenth / 10f);
+        String name = rounded < 0 ? "ic_temp_unknown"
+                : rounded > 60 ? "ic_temp_60" : "ic_temp_" + rounded;
+        return getResources().getIdentifier(name, "drawable", getPackageName());
     }
 
     private Notification buildNotification(String title, String line2, String line3,
@@ -331,9 +313,10 @@ public class ChargingService extends android.app.Service {
         String big = (line3 == null || line3.isEmpty()) ? line2 : line2 + "\n" + line3;
 
         // 字段对齐 VideoSplitter StatusBarProgress.build：category/ticker/onlyAlertOnce/PUBLIC 全套
+        // smallIcon = 资源型温度图标（ic_temp_N），普通通知态不被系统回退为应用图标
+        int tempRes = resolveTempRes(tempTenth);
         Notification.Builder builder = new Notification.Builder(this, CHANNEL_ID)
-                // smallIcon = 动态温度文字（26°），状态栏时间旁直接显示电池温度
-                .setSmallIcon(getTempIcon(tempTenth))
+                .setSmallIcon(tempRes != 0 ? tempRes : R.drawable.ic_stat_transparent)
                 .setContentTitle(title)
                 .setContentText(summary)
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
