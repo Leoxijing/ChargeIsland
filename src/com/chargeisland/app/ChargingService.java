@@ -9,7 +9,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ServiceInfo;
-import android.graphics.drawable.Icon;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Handler;
@@ -77,8 +76,7 @@ public class ChargingService extends android.app.Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         ChargeDataStore.serviceRunning = true;
-        Notification base = buildNotification("— ℃", "正在获取充电状态…", false, 0,
-                Icon.createWithResource(this, R.drawable.ic_stat_charge));
+        Notification base = buildNotification("读取中…", "正在获取充电状态…", "", false, 0);
         if (Build.VERSION.SDK_INT >= 34) {
             startForeground(NOTIFY_ID, base, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
         } else {
@@ -176,85 +174,48 @@ public class ChargingService extends android.app.Service {
         else if (plugged == BatteryManager.BATTERY_PLUGGED_USB) plugLabel = "USB 充电";
         else plugLabel = "未插入充电器";
 
-        // 预计充满时间
-        String etaText = "—";
-        if (charging && !full) {
+        // 通知样式（v2.0，按用户参考图）：
+        // - 标题 = 状态 · 电量（如 "充电中 · 54%"）
+        // - 第二行（参考图"电量"位置）= 充电功率
+        // - 第三行 = 预计充满时间/状态说明；图标回退静态闪电
+        String statusLabel;
+        if (!charging) statusLabel = "未充电";
+        else if (full) statusLabel = "已充满";
+        else statusLabel = "充电中";
+
+        String line2 = (charging && !full && watts >= 0)
+                ? String.format("%.1f W", watts) : "—";
+
+        String line3;
+        if (!charging) {
+            line3 = plugLabel;
+        } else if (full) {
+            line3 = "已充满";
+        } else {
             double rate = ChargeDataStore.recentRatePerMin(System.currentTimeMillis());
             if (rate > 0.001) {
                 int remain = (int) Math.ceil((100 - pct) / rate);
                 if (remain > 0 && remain < 24 * 60) {
-                    etaText = remain >= 60
-                            ? String.format("约 %d 小时 %d 分钟充满", remain / 60, remain % 60)
-                            : String.format("约 %d 分钟充满", remain);
+                    line3 = remain >= 60
+                            ? String.format("预计充满时间%d小时%d分钟", remain / 60, remain % 60)
+                            : String.format("预计充满时间%d分钟", remain);
                 } else if (remain <= 0) {
-                    etaText = "即将充满";
+                    line3 = "即将充满";
+                } else {
+                    line3 = "正在计算预计充满时间…";
                 }
             } else {
-                etaText = "计算中…";
+                line3 = "正在计算预计充满时间…";
             }
-        } else if (full) {
-            etaText = "已充满";
         }
 
-        String tempText = String.format("%.1f ℃", tempDeci / 10f);
-
-        // 通知样式（v1.9，用户指定）：
-        // - 顶部标题 = 电池温度
-        // - 黄色闪电图标位 = 充电功率（动态文字图标；未充电/已充满/功率未知时回退闪电图标）
-        // - 详情行不再重复温度（已移至顶部）
-        String notifTitle = tempText;
-        StringBuilder detail = new StringBuilder();
-        detail.append(pct).append("%");
-        if (charging && !full) {
-            detail.append(" · ").append(etaText);
-        } else if (full) {
-            detail.append(" · 已充满");
-        } else {
-            detail.append(" · ").append(plugLabel);
-        }
-
-        Icon notifIcon;
-        if (charging && !full && watts >= 0) {
-            notifIcon = buildPowerIcon(String.format("%.1fW", watts));
-        } else {
-            notifIcon = Icon.createWithResource(this, R.drawable.ic_stat_charge);
-        }
+        String notifTitle = statusLabel + " · " + pct + "%";
 
         // 每次轮询都刷新通知（对齐 VideoSplitter：高频 notify，不因内容未变而跳过，
         // 让系统持续重新评估 Promoted 提升资格）
-        Notification notification = buildNotification(notifTitle, detail.toString(), charging, pct, notifIcon);
+        Notification notification = buildNotification(notifTitle, line2, line3, charging, pct);
         nm.notify(NOTIFY_ID, notification);
         updatePromotedState(notification);
-    }
-
-    /**
-     * 功率文字小图标（如 "22.5W"）：通知 smallIcon 按 alpha mask 渲染，
-     * 实时动态模板的黄圆底上会显示为深色文字，替代静态闪电图标。
-     */
-    private Icon buildPowerIcon(String text) {
-        try {
-            int size = 192;
-            android.graphics.Bitmap bmp = android.graphics.Bitmap.createBitmap(
-                    size, size, android.graphics.Bitmap.Config.ARGB_8888);
-            android.graphics.Canvas canvas = new android.graphics.Canvas(bmp);
-            android.graphics.Paint paint = new android.graphics.Paint(
-                    android.graphics.Paint.ANTI_ALIAS_FLAG);
-            paint.setColor(0xFF000000);
-            paint.setTextAlign(android.graphics.Paint.Align.CENTER);
-            paint.setFakeBoldText(true);
-            float textSize = size * 0.40f;
-            paint.setTextSize(textSize);
-            float maxWidth = size * 0.90f;
-            float width = paint.measureText(text);
-            if (width > maxWidth) textSize = textSize * maxWidth / width;
-            paint.setTextSize(textSize);
-            android.graphics.Paint.FontMetrics fm = paint.getFontMetrics();
-            float baseline = (size - (fm.ascent + fm.descent)) / 2f;
-            canvas.drawText(text, size / 2f, baseline, paint);
-            return Icon.createWithBitmap(bmp);
-        } catch (Exception e) {
-            return Icon.createWithResource(this, R.drawable.ic_stat_charge);
-        }
     }
 
     /**
@@ -295,21 +256,25 @@ public class ChargingService extends android.app.Service {
         }
     }
 
-    private Notification buildNotification(String title, String text, boolean ongoing, int pct,
-                                           Icon smallIcon) {
+    private Notification buildNotification(String title, String line2, String line3,
+                                           boolean ongoing, int pct) {
         Intent open = new Intent(this, MainActivity.class);
         open.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pi = PendingIntent.getActivity(this, 0, open,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
+        // 参考图样式：单行摘要 = "第二行 · 说明"，展开态 = 两行（功率行 + 说明行）
+        String summary = (line3 == null || line3.isEmpty()) ? line2 : line2 + " · " + line3;
+        String big = (line3 == null || line3.isEmpty()) ? line2 : line2 + "\n" + line3;
+
         // 字段对齐 VideoSplitter StatusBarProgress.build：category/ticker/onlyAlertOnce/PUBLIC 全套
         Notification.Builder builder = new Notification.Builder(this, CHANNEL_ID)
-                .setSmallIcon(smallIcon)
+                .setSmallIcon(R.drawable.ic_stat_charge)
                 .setContentTitle(title)
-                .setContentText(text)
+                .setContentText(summary)
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
                 // 实时动态（Live Updates）资格要求：BigTextStyle + contentTitle + ongoing
-                .setStyle(new Notification.BigTextStyle().bigText(text))
+                .setStyle(new Notification.BigTextStyle().bigText(big))
                 .setProgress(100, Math.max(0, Math.min(100, pct)), false)
                 .setColor(0xFFFFC400)
                 .setCategory(Notification.CATEGORY_PROGRESS)
