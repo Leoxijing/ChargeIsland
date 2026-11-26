@@ -12,6 +12,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Switch;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
@@ -23,6 +24,7 @@ public class MainActivity extends Activity {
     private View miniBar;
     private BatteryCurveView curve;
     private Button btnToggle, btnLiveSettings, btnCheckUpdate, btnChangelog;
+    private Switch swKeepIdle;
 
     private final BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
         @Override
@@ -46,6 +48,16 @@ public class MainActivity extends Activity {
         btnLiveSettings = findViewById(R.id.btnLiveSettings);
         btnCheckUpdate = findViewById(R.id.btnCheckUpdate);
         btnChangelog = findViewById(R.id.btnChangelog);
+
+        // v4.0：未充电常驻开关（默认开=现状；关=未充电时服务自动退出，插电由 PowerReceiver 拉起）
+        ChargeDataStore.loadSettings(this);
+        swKeepIdle = findViewById(R.id.swKeepIdle);
+        swKeepIdle.setChecked(ChargeDataStore.keepIdle);
+        swKeepIdle.setOnCheckedChangeListener((btn, isChecked) -> {
+            ChargeDataStore.saveKeepIdle(this, isChecked);
+            // 服务若因开关在 1s 轮询中自动退出，稍后刷新按钮状态
+            btnToggle.postDelayed(this::updateToggleState, 1500);
+        });
         miniBar = findViewById(R.id.miniBar);
         tvPowerMini = findViewById(R.id.tvPowerMini);
         tvEtaLabelMini = findViewById(R.id.tvEtaLabelMini);

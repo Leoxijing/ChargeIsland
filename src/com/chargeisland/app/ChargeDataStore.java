@@ -14,12 +14,28 @@ public final class ChargeDataStore {
     public static volatile boolean promotable = false;           // 当前通知具备提升资格
     public static volatile boolean promotedActive = false;       // 通知当前已被系统提升
 
+    // v4.0：未充电时是否保持常驻通知（默认开；关=未充电时服务自动退出，插电自动恢复）
+    public static volatile boolean keepIdle = true;
+
     /** 充电采样点：每个元素为 {timestampMs, batteryPercent}，用于充电曲线与充满预估。 */
     public static final ArrayList<long[]> points = new ArrayList<>();
     /** 放电采样点：仅用于耗尽预估，不进充电曲线。 */
     public static final ArrayList<long[]> dischargePoints = new ArrayList<>();
 
     private ChargeDataStore() {}
+
+    /** v4.0：读取用户设置（服务与主界面启动时各调一次）。 */
+    public static void loadSettings(android.content.Context c) {
+        keepIdle = c.getSharedPreferences("ci_settings", android.content.Context.MODE_PRIVATE)
+                .getBoolean("keep_idle_notification", true);
+    }
+
+    /** v4.0：保存"未充电时保持常驻"开关。 */
+    public static void saveKeepIdle(android.content.Context c, boolean v) {
+        keepIdle = v;
+        c.getSharedPreferences("ci_settings", android.content.Context.MODE_PRIVATE)
+                .edit().putBoolean("keep_idle_notification", v).apply();
+    }
 
     public static synchronized void addPoint(long timeMs, int pct) {
         if (!points.isEmpty()) {

@@ -75,6 +75,12 @@ public class ChargingService extends android.app.Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        ChargeDataStore.loadSettings(this);
+        // v4.0 开关：未充电且关闭常驻 → 不进前台直接退出（插电由 PowerReceiver 自动拉起）
+        if (!isChargingNow() && !ChargeDataStore.keepIdle) {
+            stopSelf();
+            return START_NOT_STICKY;
+        }
         ChargeDataStore.serviceRunning = true;
         Notification base = buildNotification("读取中…", "正在获取充电状态…", "", 0, 0);
         if (Build.VERSION.SDK_INT >= 34) {
@@ -122,6 +128,15 @@ public class ChargingService extends android.app.Service {
         }
     }
 
+    /** v4.0：启动时读取当前充电状态；读取失败保守按充电处理，避免误退出。 */
+    private boolean isChargingNow() {
+        Intent i = stickyIntent();
+        if (i == null) return true;
+        int st = i.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+        return st == BatteryManager.BATTERY_STATUS_CHARGING
+                || st == BatteryManager.BATTERY_STATUS_FULL;
+    }
+
     private void refresh(Intent battery) {
         if (battery == null) return;
 
@@ -134,6 +149,12 @@ public class ChargingService extends android.app.Service {
         boolean charging = status == BatteryManager.BATTERY_STATUS_CHARGING
                 || status == BatteryManager.BATTERY_STATUS_FULL;
         boolean full = status == BatteryManager.BATTERY_STATUS_FULL || pct >= 100;
+
+        // v4.0 开关：轮询中发现已拔电且关闭常驻 → 退出服务（onDestroy 取消通知）
+        if (!charging && !ChargeDataStore.keepIdle) {
+            stopSelf();
+            return;
+        }
 
         int voltageMv = battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0);
         int tempDeci = battery.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0);
