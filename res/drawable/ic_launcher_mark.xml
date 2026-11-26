@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- v3.9 启动图标前景：极简单闪电（去掉进度环，居中于 adaptive 安全区内） -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFC400"
+        android:pathData="M57,26 L36,58 L50,58 L47,82 L72,50 L58,50 Z" />
+</vector>

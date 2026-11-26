@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- v3.8 启动图标背景：深空渐变（adaptive icon 底层，形状由系统遮罩裁切） -->
+<!-- v3.9 启动图标背景：纯色深底（元素越少越协调，形状由系统遮罩裁切） -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <gradient
-        android:angle="135"
-        android:endColor="#0E141E"
-        android:startColor="#1C2436" />
+    <solid android:color="#10151F" />
 </shape>

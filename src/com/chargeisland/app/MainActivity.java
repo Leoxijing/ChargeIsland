@@ -18,7 +18,7 @@ public class MainActivity extends Activity {
 
     private static final int REQ_POST_NOTIFICATIONS = 100;
 
-    private TextView tvLevel, tvStatus, tvPower, tvTemp, tvVoltage, tvEta, tvEtaLabel, tvPlug, tvHint, tvPromoted;
+    private TextView tvLevel, tvStatus, tvPlug, tvHint, tvPromoted;
     private TextView tvPowerMini, tvEtaMini, tvEtaLabelMini, tvTempMini, tvVoltageMini;
     private View miniBar;
     private BatteryCurveView curve;
@@ -38,11 +38,6 @@ public class MainActivity extends Activity {
 
         tvLevel = findViewById(R.id.tvLevel);
         tvStatus = findViewById(R.id.tvStatus);
-        tvPower = findViewById(R.id.tvPower);
-        tvTemp = findViewById(R.id.tvTemp);
-        tvVoltage = findViewById(R.id.tvVoltage);
-        tvEta = findViewById(R.id.tvEta);
-        tvEtaLabel = findViewById(R.id.tvEtaLabel);
         tvPlug = findViewById(R.id.tvPlug);
         tvHint = findViewById(R.id.tvHint);
         tvPromoted = findViewById(R.id.tvPromoted);
@@ -254,41 +249,41 @@ public class MainActivity extends Activity {
                 watts = (voltageMv / 1000.0) * (Math.abs(raw) / 1_000_000.0);
             }
         }
-        tvPower.setText(watts >= 0 ? String.format("%.1f W", watts) : "—");
-        tvTemp.setText(String.format("%.1f ℃", tempDeci / 10f));
-        tvVoltage.setText(voltageMv > 0 ? String.format("%.2f V", voltageMv / 1000f) : "—");
+        tvPowerMini.setText(watts >= 0 ? String.format("%.1f W", watts) : "—");
+        tvTempMini.setText(String.format("%.1f ℃", tempDeci / 10f));
+        tvVoltageMini.setText(voltageMv > 0 ? String.format("%.2f V", voltageMv / 1000f) : "—");
 
         if (status == BatteryManager.BATTERY_STATUS_CHARGING && !full) {
-            tvEtaLabel.setText("预计充满");
+            tvEtaLabelMini.setText("预计充满");
             ChargeDataStore.RateEstimate r =
                     ChargeDataStore.chargeRate(System.currentTimeMillis());
             if (r.usable() && r.slopePerMin > 0) {
                 int remain = (int) Math.ceil((100 - pct) / r.slopePerMin);
-                tvEta.setText(remain <= 0 ? "即将充满"
+                tvEtaMini.setText(remain <= 0 ? "即将充满"
                         : remain > 24 * 60 ? "超过 24 小时"
                         : remain >= 60 ? String.format("%d 小时 %d 分", remain / 60, remain % 60)
                         : remain + " 分钟");
             } else {
-                tvEta.setText("计算中…");
+                tvEtaMini.setText("计算中…");
             }
         } else if (plugged == 0) {
-            tvEtaLabel.setText("预计耗尽");
+            tvEtaLabelMini.setText("预计耗尽");
             ChargeDataStore.RateEstimate r =
                     ChargeDataStore.dischargeRate(System.currentTimeMillis());
             if (r.usable() && r.slopePerMin < 0) {
                 int remain = (int) Math.ceil(pct / -r.slopePerMin);
-                tvEta.setText(remain > 7 * 24 * 60 ? "超过 7 天"
+                tvEtaMini.setText(remain > 7 * 24 * 60 ? "超过 7 天"
                         : remain >= 60 ? String.format("%d 小时 %d 分", remain / 60, remain % 60)
                         : remain + " 分钟");
             } else {
-                tvEta.setText("计算中…");
+                tvEtaMini.setText("计算中…");
             }
         } else if (full) {
-            tvEtaLabel.setText("预计充满");
-            tvEta.setText("已充满");
+            tvEtaLabelMini.setText("预计充满");
+            tvEtaMini.setText("已充满");
         } else {
-            tvEtaLabel.setText("预计充满");
-            tvEta.setText("—"); // 插电但未在充电
+            tvEtaLabelMini.setText("预计充满");
+            tvEtaMini.setText("—"); // 插电但未在充电
         }
 
         String plug;
@@ -297,13 +292,6 @@ public class MainActivity extends Activity {
         else if (plugged == BatteryManager.BATTERY_PLUGGED_USB) plug = "USB 充电";
         else plug = "未插入充电器";
         tvPlug.setText(plug);
-
-        // 缩小版数据条与主卡片同步
-        tvPowerMini.setText(tvPower.getText());
-        tvEtaLabelMini.setText(tvEtaLabel.getText());
-        tvEtaMini.setText(tvEta.getText());
-        tvTempMini.setText(tvTemp.getText());
-        tvVoltageMini.setText(tvVoltage.getText());
 
         updatePromotedUi();
         curve.invalidate();
