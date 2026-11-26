@@ -18,7 +18,7 @@ public class MainActivity extends Activity {
 
     private static final int REQ_POST_NOTIFICATIONS = 100;
 
-    private TextView tvLevel, tvStatus, tvPower, tvTemp, tvVoltage, tvEta, tvPlug, tvHint, tvPromoted;
+    private TextView tvLevel, tvStatus, tvPower, tvTemp, tvVoltage, tvEta, tvEtaLabel, tvPlug, tvHint, tvPromoted;
     private BatteryCurveView curve;
     private Button btnToggle, btnLiveSettings, btnCheckUpdate, btnChangelog;
 
@@ -40,6 +40,7 @@ public class MainActivity extends Activity {
         tvTemp = findViewById(R.id.tvTemp);
         tvVoltage = findViewById(R.id.tvVoltage);
         tvEta = findViewById(R.id.tvEta);
+        tvEtaLabel = findViewById(R.id.tvEtaLabel);
         tvPlug = findViewById(R.id.tvPlug);
         tvHint = findViewById(R.id.tvHint);
         tvPromoted = findViewById(R.id.tvPromoted);
@@ -205,7 +206,7 @@ public class MainActivity extends Activity {
 
         BatteryManager bm = getSystemService(BatteryManager.class);
         double watts = -1;
-        if (bm != null && charging) {
+        if (bm != null) { // 未充电时同样估算耗电功率
             int raw = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW);
             if (raw != Integer.MIN_VALUE && raw != 0 && voltageMv > 0) {
                 watts = (voltageMv / 1000.0) * (Math.abs(raw) / 1_000_000.0);
@@ -215,21 +216,37 @@ public class MainActivity extends Activity {
         tvTemp.setText(String.format("%.1f ℃", tempDeci / 10f));
         tvVoltage.setText(voltageMv > 0 ? String.format("%.2f V", voltageMv / 1000f) : "—");
 
-        if (!charging) {
-            tvEta.setText("—");
-        } else if (full) {
-            tvEta.setText("已充满");
-        } else {
-            double rate = ChargeDataStore.recentRatePerMin(System.currentTimeMillis());
-            if (rate > 0.001) {
-                int remain = (int) Math.ceil((100 - pct) / rate);
-                tvEta.setText(remain > 0 && remain < 24 * 60
-                        ? (remain >= 60 ? String.format("%d 小时 %d 分", remain / 60, remain % 60)
-                                         : remain + " 分钟")
-                        : "即将充满");
+        if (status == BatteryManager.BATTERY_STATUS_CHARGING && !full) {
+            tvEtaLabel.setText("预计充满");
+            ChargeDataStore.RateEstimate r =
+                    ChargeDataStore.chargeRate(System.currentTimeMillis());
+            if (r.usable() && r.slopePerMin > 0) {
+                int remain = (int) Math.ceil((100 - pct) / r.slopePerMin);
+                tvEta.setText(remain <= 0 ? "即将充满"
+                        : remain > 24 * 60 ? "超过 24 小时"
+                        : remain >= 60 ? String.format("%d 小时 %d 分", remain / 60, remain % 60)
+                        : remain + " 分钟");
             } else {
                 tvEta.setText("计算中…");
             }
+        } else if (plugged == 0) {
+            tvEtaLabel.setText("预计耗尽");
+            ChargeDataStore.RateEstimate r =
+                    ChargeDataStore.dischargeRate(System.currentTimeMillis());
+            if (r.usable() && r.slopePerMin < 0) {
+                int remain = (int) Math.ceil(pct / -r.slopePerMin);
+                tvEta.setText(remain > 7 * 24 * 60 ? "超过 7 天"
+                        : remain >= 60 ? String.format("%d 小时 %d 分", remain / 60, remain % 60)
+                        : remain + " 分钟");
+            } else {
+                tvEta.setText("计算中…");
+            }
+        } else if (full) {
+            tvEtaLabel.setText("预计充满");
+            tvEta.setText("已充满");
+        } else {
+            tvEtaLabel.setText("预计充满");
+            tvEta.setText("—"); // 插电但未在充电
         }
 
         String plug;

@@ -150,21 +150,26 @@ public class ChargingService extends android.app.Service {
             }
         }
 
-        // 曲线采样：仅在电量百分比变化时记录
+        // 曲线采样：仅在电量百分比变化时记录；充电与放电分开两组样本
         if (pct != ChargeDataStore.lastPct || !charging && ChargeDataStore.lastCharging) {
             if (charging && !ChargeDataStore.lastCharging) {
                 ChargeDataStore.clear(); // 新一轮充电，重新起线
             }
+            if (!charging && ChargeDataStore.lastCharging) {
+                ChargeDataStore.clearDischarge(); // 拔电，新一轮放电
+            }
             if (charging) {
                 ChargeDataStore.addPoint(System.currentTimeMillis(), pct);
+            } else {
+                ChargeDataStore.addDischargePoint(System.currentTimeMillis(), pct);
             }
         }
         ChargeDataStore.lastPct = pct;
         ChargeDataStore.lastCharging = charging;
 
-        // 功率估算：P(W) = 电压(V) × 电流(A)
+        // 功率估算：P(W) = 电压(V) × 电流(A)；充电时为充电功率，未充电时为耗电功率
         double watts = -1;
-        if (charging && currentValid && voltageMv > 0) {
+        if (currentValid && voltageMv > 0) {
             watts = (voltageMv / 1000.0) * (currentUa / 1_000_000.0);
         }
 
@@ -174,41 +179,55 @@ public class ChargingService extends android.app.Service {
         else if (plugged == BatteryManager.BATTERY_PLUGGED_USB) plugLabel = "USB 充电";
         else plugLabel = "未插入充电器";
 
-        // 通知样式（v2.1，按用户指定格式）：
-        // - 第一行（标题）= 温度 · 功率（如 "26℃ · 22.2W"）
-        // - 第二行 = 状态 · 电量（如 "充电中 · 54%"）
-        // - 第三行 = 预计充满时间/状态说明；图标为静态闪电
+        // 通知样式（v2.3）：
+        // - 第一行（标题）= 温度 · 功率（充电=充电功率，未充电=耗电功率）
+        // - 第二行 = 状态 · 电量
+        // - 第三行 = 预计充满/耗尽时间 · 推测速度 · 准确度
         String statusLabel;
         if (!charging) statusLabel = "未充电";
         else if (full) statusLabel = "已充满";
         else statusLabel = "充电中";
 
-        String powerPart = (charging && !full && watts >= 0)
-                ? String.format("%.1fW", watts) : "—";
+        String powerPart;
+        if (!full && status == BatteryManager.BATTERY_STATUS_CHARGING && watts >= 0) {
+            powerPart = String.format("%.1fW", watts);   // 充电功率
+        } else if (plugged == 0 && watts >= 0) {
+            powerPart = String.format("%.1fW", watts);   // 耗电功率
+        } else {
+            powerPart = "—";
+        }
         String notifTitle = String.format("%.0f℃", tempDeci / 10f) + " · " + powerPart;
         String line2 = statusLabel + " · " + pct + "%";
 
         String line3;
-        if (!charging) {
-            line3 = plugLabel;
-        } else if (full) {
-            line3 = "已充满";
-        } else {
-            double rate = ChargeDataStore.recentRatePerMin(System.currentTimeMillis());
-            if (rate > 0.001) {
-                int remain = (int) Math.ceil((100 - pct) / rate);
-                if (remain > 0 && remain < 24 * 60) {
-                    line3 = remain >= 60
-                            ? String.format("预计充满时间%d小时%d分钟", remain / 60, remain % 60)
-                            : String.format("预计充满时间%d分钟", remain);
-                } else if (remain <= 0) {
-                    line3 = "即将充满";
-                } else {
-                    line3 = "正在计算预计充满时间…";
-                }
+        if (status == BatteryManager.BATTERY_STATUS_CHARGING && !full) {
+            ChargeDataStore.RateEstimate r =
+                    ChargeDataStore.chargeRate(System.currentTimeMillis());
+            if (r.usable() && r.slopePerMin > 0) {
+                int remain = (int) Math.ceil((100 - pct) / r.slopePerMin);
+                String eta = remain <= 0 ? "即将充满"
+                        : remain > 24 * 60 ? "超过 24 小时"
+                        : formatDuration(remain);
+                line3 = "预计充满时间" + eta + " · " + formatRate(r) + " · 准确度" + r.accuracyLabel();
             } else {
                 line3 = "正在计算预计充满时间…";
             }
+        } else if (plugged == 0) {
+            ChargeDataStore.RateEstimate r =
+                    ChargeDataStore.dischargeRate(System.currentTimeMillis());
+            if (r.usable() && r.slopePerMin < 0) {
+                int remain = (int) Math.ceil(pct / -r.slopePerMin);
+                String eta = remain <= 0 ? "即将耗尽"
+                        : remain > 7 * 24 * 60 ? "超过 7 天"
+                        : formatDuration(remain);
+                line3 = "预计耗尽时间" + eta + " · " + formatRate(r) + " · 准确度" + r.accuracyLabel();
+            } else {
+                line3 = "正在计算预计耗尽时间…";
+            }
+        } else if (full) {
+            line3 = "已充满";
+        } else {
+            line3 = plugLabel; // 插电但未在充电
         }
 
         // 每次轮询都刷新通知（对齐 VideoSplitter：高频 notify，不因内容未变而跳过，
@@ -216,6 +235,18 @@ public class ChargingService extends android.app.Service {
         Notification notification = buildNotification(notifTitle, line2, line3, charging, pct);
         nm.notify(NOTIFY_ID, notification);
         updatePromotedState(notification);
+    }
+
+    /** 分钟数 → "X小时Y分钟" / "X分钟"。 */
+    private static String formatDuration(int minutes) {
+        return minutes >= 60
+                ? String.format("%d小时%d分钟", minutes / 60, minutes % 60)
+                : minutes + "分钟";
+    }
+
+    /** 速率 → "4.2%/h"（取绝对值，方向由充满/耗尽语义表达）。 */
+    private static String formatRate(ChargeDataStore.RateEstimate r) {
+        return String.format("%.1f%%/h", Math.abs(r.slopePerMin) * 60);
     }
 
     /**
