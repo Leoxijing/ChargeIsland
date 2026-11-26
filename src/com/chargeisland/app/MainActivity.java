@@ -159,7 +159,7 @@ public class MainActivity extends Activity {
         try {
             android.os.PowerManager pm = getSystemService(android.os.PowerManager.class);
             if (pm == null || pm.isIgnoringBatteryOptimizations(getPackageName())) return;
-            new android.app.AlertDialog.Builder(this)
+            new android.app.AlertDialog.Builder(this, R.style.ModernDialog)
                     .setTitle("开启后台保活")
                     .setMessage("允许本应用不受电池限制，插电时可自动启动、后台持续刷新充电进度。")
                     .setPositiveButton("去设置", (d, w) -> {
@@ -199,10 +199,25 @@ public class MainActivity extends Activity {
         int tempDeci = battery.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0);
         int plugged = battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0);
 
-        tvLevel.setText(pct + "%");
-        if (!charging) tvStatus.setText("未充电");
-        else if (full) tvStatus.setText("充电完成");
-        else tvStatus.setText("正在充电");
+        String levelText = pct + "%";
+        tvLevel.setText(levelText);
+        // v3.2：电量大数字渐变着色（黄 → 橙），按实际文字宽度铺设 shader
+        float levelW = tvLevel.getPaint().measureText(levelText);
+        tvLevel.getPaint().setShader(new android.graphics.LinearGradient(
+                0, 0, Math.max(levelW, 1f), 0,
+                0xFFFFC400, 0xFFFF8A00,
+                android.graphics.Shader.TileMode.CLAMP));
+        // v3.2：状态胶囊徽章——文字色随状态切换（背景为 pill_badge）
+        if (!charging) {
+            tvStatus.setText("未充电");
+            tvStatus.setTextColor(0xFF9AA6BC);
+        } else if (full) {
+            tvStatus.setText("充电完成");
+            tvStatus.setTextColor(0xFF6FA8FF);
+        } else {
+            tvStatus.setText("正在充电");
+            tvStatus.setTextColor(0xFF34D399);
+        }
 
         BatteryManager bm = getSystemService(BatteryManager.class);
         double watts = -1;

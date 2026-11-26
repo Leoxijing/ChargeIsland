@@ -46,7 +46,7 @@ public final class UpdateChecker {
         if (checking) return;
         checking = true;
         if (manual) {
-            pendingDialog = new AlertDialog.Builder(ctx)
+            pendingDialog = new AlertDialog.Builder(ctx, R.style.ModernDialog)
                     .setTitle("检查更新")
                     .setMessage("正在获取最新版本信息…")
                     .setNegativeButton("取消", (d, w) -> {
@@ -123,7 +123,7 @@ public final class UpdateChecker {
         long current = getCurrentCode(ctx);
         if (error != null || latestCode < 0) {
             if (manual) {
-                new AlertDialog.Builder(ctx)
+                new AlertDialog.Builder(ctx, R.style.ModernDialog)
                         .setTitle("检查更新失败")
                         .setMessage("无法获取版本信息：" + (error != null ? error : "数据异常")
                                 + "\n请检查网络后重试。")
@@ -138,7 +138,7 @@ public final class UpdateChecker {
             final int fCode = latestCode;
             final String fNotes = notes != null ? notes : "";
             if (isUpdateCached(ctx, fCode)) {
-                new AlertDialog.Builder(ctx)
+                new AlertDialog.Builder(ctx, R.style.ModernDialog)
                         .setTitle("新版本 " + fName + " 已下载")
                         .setMessage("安装包已就绪，可直接安装。\n\n" + fNotes)
                         .setPositiveButton("安装", (d, w) ->
@@ -146,7 +146,7 @@ public final class UpdateChecker {
                         .setNegativeButton("稍后", null)
                         .show();
             } else {
-                new AlertDialog.Builder(ctx)
+                new AlertDialog.Builder(ctx, R.style.ModernDialog)
                         .setTitle("发现新版本 " + fName)
                         .setMessage("当前版本：" + getVersionName(ctx)
                                 + "\n最新版本：" + fName + "\n\n" + fNotes)
@@ -156,7 +156,7 @@ public final class UpdateChecker {
                         .show();
             }
         } else if (manual) {
-            new AlertDialog.Builder(ctx)
+            new AlertDialog.Builder(ctx, R.style.ModernDialog)
                     .setTitle("已是最新版本")
                     .setMessage("当前已是最新版本（" + getVersionName(ctx) + "）。")
                     .setPositiveButton("知道了", null)
@@ -234,7 +234,7 @@ public final class UpdateChecker {
     static void installApk(final Activity ctx, final File apk) {
         if (!ctx.getPackageManager().canRequestPackageInstalls()) {
             pendingInstall = apk;
-            new AlertDialog.Builder(ctx)
+            new AlertDialog.Builder(ctx, R.style.ModernDialog)
                     .setTitle("需要授权")
                     .setMessage("安装新版本需要允许本应用安装未知应用（一次性）。\n去设置开启后返回，会自动继续安装。")
                     .setPositiveButton("去设置", (d, w) -> {
@@ -256,7 +256,7 @@ public final class UpdateChecker {
         } catch (Exception e) {
             // 会话失败时无 FileProvider 兜底，直接提示手动安装路径
         }
-        new AlertDialog.Builder(ctx)
+        new AlertDialog.Builder(ctx, R.style.ModernDialog)
                 .setTitle("无法自动安装")
                 .setMessage("请手动安装已下载的安装包：\n" + apk.getAbsolutePath()
                         + "\n\n（文件管理器中打开该路径即可，无需重新下载）")

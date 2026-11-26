@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- v3.2 现代化弹窗：深色圆角玻璃卡片，替换系统默认亮色对话框 -->
+    <style name="ModernDialog" parent="@android:style/Theme.Material.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/bg_dialog</item>
+        <item name="android:colorAccent">#FFC400</item>
+        <item name="android:textColorPrimary">#F2F5FA</item>
+        <item name="android:textColorSecondary">#9AA6BC</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+</resources>
