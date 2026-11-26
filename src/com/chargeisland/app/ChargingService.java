@@ -196,8 +196,9 @@ public class ChargingService extends android.app.Service {
         } else {
             powerPart = "—";
         }
-        String notifTitle = String.format("%.0f℃", tempDeci / 10f) + " · " + powerPart;
-        String line2 = statusLabel + " · " + pct + "%";
+        // v3.1：图标位已是温度（31°），第一行只留功率；温度移到第二行开头
+        String notifTitle = powerPart;
+        String line2 = String.format("%.0f℃", tempDeci / 10f) + " · " + statusLabel + " · " + pct + "%";
 
         String line3;
         if (status == BatteryManager.BATTERY_STATUS_CHARGING && !full) {
