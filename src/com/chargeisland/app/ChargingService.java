@@ -76,7 +76,7 @@ public class ChargingService extends android.app.Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         ChargeDataStore.serviceRunning = true;
-        Notification base = buildNotification("读取中…", "正在获取充电状态…", "", false, 0, 0);
+        Notification base = buildNotification("读取中…", "正在获取充电状态…", "", 0, 0);
         if (Build.VERSION.SDK_INT >= 34) {
             startForeground(NOTIFY_ID, base, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
         } else {
@@ -232,7 +232,7 @@ public class ChargingService extends android.app.Service {
 
         // 每次轮询都刷新通知（对齐 VideoSplitter：高频 notify，不因内容未变而跳过，
         // 让系统持续重新评估 Promoted 提升资格）
-        Notification notification = buildNotification(notifTitle, line2, line3, charging, pct, tempDeci);
+        Notification notification = buildNotification(notifTitle, line2, line3, pct, tempDeci);
         nm.notify(NOTIFY_ID, notification);
         updatePromotedState(notification);
     }
@@ -302,7 +302,7 @@ public class ChargingService extends android.app.Service {
     }
 
     private Notification buildNotification(String title, String line2, String line3,
-                                           boolean ongoing, int pct, int tempTenth) {
+                                           int pct, int tempTenth) {
         Intent open = new Intent(this, MainActivity.class);
         open.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pi = PendingIntent.getActivity(this, 0, open,
@@ -326,17 +326,20 @@ public class ChargingService extends android.app.Service {
                 .setColor(0xFFFFC400)
                 .setCategory(Notification.CATEGORY_PROGRESS)
                 .setContentIntent(pi)
-                .setOngoing(ongoing)
+                // v3.0：恒定 ongoing——实时动态（Live Updates）资格要求 ongoing，
+                // 未充电时 setOngoing(false) 会让通知永远无法提升上岛，澎湃对
+                // 实时动态应用的"未提升通知"固定用应用图标锚点（改 smallIcon 类型无效，
+                // v2.7/2.8/2.9 三轮实测），未充电也上岛后图标位才显示温度。
+                .setOngoing(true)
                 .setOnlyAlertOnce(true)
                 .setTicker(title)
                 .setShowWhen(true);
         // Android 16 Promoted Notifications：framework Builder 没有 setRequestPromotedOngoing 方法
         //（反射调用会静默失败导致提升请求从未写入），官方要求写入 extras key，字面值同
         // androidx NotificationCompat.EXTRA_REQUEST_PROMOTED_ONGOING。
-        // v2.8：仅充电（ongoing）时写入——未充电也带请求会让通知进入"提升候选/岛接管"形态，
-        // 澎湃以应用图标渲染状态栏（smallIcon 被忽略，温度图标不显示）；去掉请求后回落普通
-        // 通知渲染，smallIcon（温度文字）正常显示。充电态带请求已实测：提升后温度图标生效。
-        if (ongoing && Build.VERSION.SDK_INT >= 36) {
+        // v3.0：无条件写入（回滚 v2.8 的"仅充电"）——配合恒定 ongoing，未充电时同样
+        // 具备提升资格，上岛后胶囊图标位渲染 smallIcon（温度）。
+        if (Build.VERSION.SDK_INT >= 36) {
             builder.getExtras().putBoolean("android.requestPromotedOngoing", true);
         }
         return builder.build();
