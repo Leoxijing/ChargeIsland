@@ -8,6 +8,7 @@
 - **电量充电曲线**：进程内采样绘制
 - **后台保活**：插电（`ACTION_POWER_CONNECTED`）与开机（`BOOT_COMPLETED`）自动拉起监控服务，无需手动确认；电池优化豁免引导提升后台存活
 - **主页现代化 UI**：深空渐变背景、圆角卡片、黄→橙渐变电量大字、渐变主按钮
+- **全新图标**：APP 图标 = 深空径向渐变 + 黄色进度环 + 白色闪电（含 Android 13+ 主题图标）；通知闪电为斜切锐利造型
 - **通知样式**：第一行=温度·功率（`26℃ · 22.2W`），第二行=状态·电量（`充电中 · 54%`），第三行=预计充满时间 + 进度条
 - **Android 16 实时动态**：API 36+ 写入官方 extras key `android.requestPromotedOngoing` 请求提升，`hasPromotableCharacteristics` / `FLAG_PROMOTED_ONGOING` / `canPostPromotedNotifications` 全套状态诊断，一键跳转系统设置
 - **通知形态对齐 VideoSplitter**：纯标准通知（不写厂商私有 extras）、`CATEGORY_PROGRESS` + `BigTextStyle` + 进度条 + `VISIBILITY_PUBLIC`、1 秒高频刷新
@@ -42,6 +43,7 @@ bash build.sh
 
 | 版本 | versionCode | 说明 |
 |------|-------------|------|
+| 2.2  | 13          | 通知闪电图标改斜切锐利造型；全新 APP 图标（深空渐变 + 黄色进度环 + 白色闪电，含主题图标） |
 | 2.1  | 12          | 通知第一行=「温度 · 功率」（`26℃ · 22.2W`），第二行=状态·电量 |
 | 2.0  | 11          | 通知改参考图布局：标题=状态·电量、第二行=功率、第三行=预计充满时间；图标回闪电 |
 | 1.9  | 10          | 通知样式：顶部=温度、闪电图标位=动态功率文字；详情行去重温度 |
