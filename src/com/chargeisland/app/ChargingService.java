@@ -9,6 +9,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ServiceInfo;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Typeface;
+import android.graphics.drawable.Icon;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Handler;
@@ -33,6 +38,9 @@ public class ChargingService extends android.app.Service {
     private Handler handler;
     private Runnable pollRunnable;
     private boolean registered = false;
+    // 状态栏温度文字图标缓存：温度变化 ≥1℃ 才重绘，其余复用同一 Icon
+    private Icon tempIconCache;
+    private int tempIconTempTenth = Integer.MIN_VALUE;
 
     private final BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
         @Override
@@ -76,7 +84,7 @@ public class ChargingService extends android.app.Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         ChargeDataStore.serviceRunning = true;
-        Notification base = buildNotification("读取中…", "正在获取充电状态…", "", false, 0);
+        Notification base = buildNotification("读取中…", "正在获取充电状态…", "", false, 0, 0);
         if (Build.VERSION.SDK_INT >= 34) {
             startForeground(NOTIFY_ID, base, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
         } else {
@@ -232,7 +240,7 @@ public class ChargingService extends android.app.Service {
 
         // 每次轮询都刷新通知（对齐 VideoSplitter：高频 notify，不因内容未变而跳过，
         // 让系统持续重新评估 Promoted 提升资格）
-        Notification notification = buildNotification(notifTitle, line2, line3, charging, pct);
+        Notification notification = buildNotification(notifTitle, line2, line3, charging, pct, tempDeci);
         nm.notify(NOTIFY_ID, notification);
         updatePromotedState(notification);
     }
@@ -287,8 +295,32 @@ public class ChargingService extends android.app.Service {
         }
     }
 
+    /**
+     * 把当前温度画成 alpha-only 文字图标（如 "26°"）作为 smallIcon——状态栏图标区
+     * 只渲染 alpha mask（单色着色），文字形状会以系统配色显示在时间旁；文字像素
+     * alpha=255 非全透明，不会触发系统"全透明回退为应用图标"的检查。
+     * 温度变化 ≥1℃ 才重绘，避免状态栏每秒闪烁。
+     */
+    private Icon getTempIcon(int tempTenth) {
+        int rounded = tempTenth <= 0 ? Integer.MIN_VALUE : Math.round(tempTenth / 10f);
+        if (tempIconCache != null && rounded == tempIconTempTenth) return tempIconCache;
+        String text = rounded == Integer.MIN_VALUE ? "--°" : rounded + "°";
+        Bitmap bmp = Bitmap.createBitmap(96, 48, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bmp);
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setColor(0xFFFFFFFF);
+        paint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        paint.setTextSize(36f);
+        paint.setTextAlign(Paint.Align.CENTER);
+        float baseline = bmp.getHeight() / 2f - (paint.descent() + paint.ascent()) / 2f;
+        canvas.drawText(text, bmp.getWidth() / 2f, baseline, paint);
+        tempIconCache = Icon.createWithBitmap(bmp);
+        tempIconTempTenth = rounded;
+        return tempIconCache;
+    }
+
     private Notification buildNotification(String title, String line2, String line3,
-                                           boolean ongoing, int pct) {
+                                           boolean ongoing, int pct, int tempTenth) {
         Intent open = new Intent(this, MainActivity.class);
         open.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pi = PendingIntent.getActivity(this, 0, open,
@@ -300,9 +332,8 @@ public class ChargingService extends android.app.Service {
 
         // 字段对齐 VideoSplitter StatusBarProgress.build：category/ticker/onlyAlertOnce/PUBLIC 全套
         Notification.Builder builder = new Notification.Builder(this, CHANNEL_ID)
-                // smallIcon 恒为全透明 mask：状态栏/通知栏均不显示图标（充电与否一致），
-                // 通知本体、进度条与实时动态不受影响
-                .setSmallIcon(R.drawable.ic_stat_transparent)
+                // smallIcon = 动态温度文字（26°），状态栏时间旁直接显示电池温度
+                .setSmallIcon(getTempIcon(tempTenth))
                 .setContentTitle(title)
                 .setContentText(summary)
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
