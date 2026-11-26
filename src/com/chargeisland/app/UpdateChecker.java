@@ -35,6 +35,8 @@ public final class UpdateChecker {
             "https://github.com/Leoxijing/ChargeIsland/releases/latest/download/version.json";
 
     private static volatile boolean checking = false;
+    /** 手动检查的等待窗引用（结果返回后必须关闭——原空实现导致对话框卡住） */
+    private static AlertDialog pendingDialog;
     /** 安装授权跳设置后暂存的待装包，返回 APP 时自动继续 */
     static volatile File pendingInstall = null;
 
@@ -44,10 +46,13 @@ public final class UpdateChecker {
         if (checking) return;
         checking = true;
         if (manual) {
-            new AlertDialog.Builder(ctx)
+            pendingDialog = new AlertDialog.Builder(ctx)
                     .setTitle("检查更新")
                     .setMessage("正在获取最新版本信息…")
-                    .setNegativeButton("取消", (d, w) -> checking = false)
+                    .setNegativeButton("取消", (d, w) -> {
+                        checking = false;
+                        pendingDialog = null;
+                    })
                     .setCancelable(false)
                     .show();
         }
@@ -102,9 +107,12 @@ public final class UpdateChecker {
     }
 
     private static void dismissManualDialog(Context ctx) {
-        // 手动检查的等待窗由 showResult 的结果窗替换；此处仅兜底防泄漏
+        // 关闭手动检查的等待窗（原为空实现，导致结果返回后对话框一直挂着）
         try {
-            if (ctx instanceof Activity && ((Activity) ctx).isFinishing()) return;
+            if (pendingDialog != null) {
+                pendingDialog.dismiss();
+                pendingDialog = null;
+            }
         } catch (Exception ignored) {
         }
     }
@@ -199,7 +207,10 @@ public final class UpdateChecker {
     /** 校验 APK：体积 + 版本号匹配 + 包管理器可解析（防下载截断） */
     static boolean validApk(Context ctx, File apk, int expectCode) {
         try {
-            if (apk.length() < 1024 * 1024) return false;
+            // 体积下限 10KB：仅防空文件/HTML 错误页。本 APP APK 约 46KB，
+            // 原 1MB 下限（照搬大体量 APP 的阈值）会把自家安装包全部误杀，
+            // 报「安装包校验失败」。完整性由下方解析 + 版本号匹配保证。
+            if (apk.length() < 10 * 1024) return false;
             android.content.pm.PackageInfo info =
                     ctx.getPackageManager().getPackageArchiveInfo(apk.getAbsolutePath(), 0);
             return info != null && info.versionCode == expectCode;

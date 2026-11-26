@@ -6,6 +6,11 @@ APP 内可通过「检查更新」获取最新版本。
 
 ---
 
+## v1.8 (versionCode 9)
+- **修复「更新下载失败：安装包校验失败」**：`validApk` 体积下限原为 1MB（照搬大体量 APP 的阈值），而本 APP 安装包仅约 46KB，下载成功也会被误杀、且缓存永远无法复用；下限改为 10KB（防空文件/HTML 错误页），完整性仍由 APK 解析 + 版本号匹配保证
+- **修复「检查更新」等待窗卡住**：`dismissManualDialog` 原为空实现，结果返回后"正在获取最新版本信息…"对话框不会关闭；现持引用并正确关闭
+- **校验通过**：编译成功、aapt 版本号 9/1.8
+
 ## v1.7 (versionCode 8)
 - **主页 UI 现代化**：深空渐变背景、圆角卡片（18dp + 描边）、黄→橙渐变电量大字、渐变圆角主按钮、幽灵按钮组、排版与间距重排
 - **后台保活**：新增 `PowerReceiver`——插电（ACTION_POWER_CONNECTED）与开机（BOOT_COMPLETED / LOCKED_BOOT_COMPLETED）时自动拉起充电监控服务，无需手动确认；启动监控时若未豁免电池优化，弹一次「后台保活」引导（REQUEST_IGNORE_BATTERY_OPTIMIZATIONS）
