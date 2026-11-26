@@ -63,7 +63,10 @@ bash build.sh
 
 - 本仓库全部源码由作者原创编写。
 - **第三方代码/库：无。** JSON 解析（`org.json`）与网络请求（`HttpURLConnection`）均为 Android 系统自带组件，不构成第三方依赖。
-- 参考文档（仅参考 API 用法，未复制其代码）：
-  - 小米超级岛开发指南 — https://dev.mi.com/xiaomihyperos/documentation/detail?pId=2131
+- 参考来源（仅参考机制/API 用法，未复制其代码）：
+  - 小米超级岛开发指南 — https://dev.mi.com/xiaomihyperos/documentation/detail?pId=2131 （v1.3 前的超级岛参数接入；v1.3 起已移除厂商私有参数）
   - Android 实时动态（Live Updates）通知 — https://developer.android.com/develop/ui/views/notifications/live-update
+  - **VideoSplitter**（作者同账号项目）— 应用内更新机制（检查源/三重校验/缓存复用/安装会话）、通知形态（渠道参数/CATEGORY/ticker/高频刷新）、更新日志页结构的机制参考（v1.4–v1.6，曾反汇编其 APK 对比实现；本项目代码为原创重写）
+  - androidx `NotificationCompat.EXTRA_REQUEST_PROMOTED_ONGOING` — 提升请求 extras key 字面值 `android.requestPromotedOngoing` 的协议来源（v1.4 起）
+- **历史资源说明**：v1.0–v2.1 的通知/启动图标曾使用 Material Design `flash_on` 闪电路径（Apache-2.0 设计资源）；v2.2 起已全部替换为本项目自绘图标，当前代码无该路径残留。
 - **署名规则：引入任何第三方代码/库时，必须同步更新本署名区域，逐项列出来源与用途。**
