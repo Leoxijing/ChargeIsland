@@ -21,6 +21,7 @@ public class MainActivity extends Activity {
     private TextView tvLevel, tvStatus, tvPower, tvTemp, tvVoltage, tvEta, tvEtaLabel, tvPlug, tvHint, tvPromoted;
     private TextView tvPowerMini, tvEtaMini, tvEtaLabelMini, tvTempMini, tvVoltageMini;
     private View miniBar;
+    private View ivBadge;
     private BatteryCurveView curve;
     private Button btnToggle, btnLiveSettings, btnCheckUpdate, btnChangelog;
 
@@ -52,6 +53,7 @@ public class MainActivity extends Activity {
         btnCheckUpdate = findViewById(R.id.btnCheckUpdate);
         btnChangelog = findViewById(R.id.btnChangelog);
         miniBar = findViewById(R.id.miniBar);
+        ivBadge = findViewById(R.id.ivBadge);
         tvPowerMini = findViewById(R.id.tvPowerMini);
         tvEtaLabelMini = findViewById(R.id.tvEtaLabelMini);
         tvEtaMini = findViewById(R.id.tvEtaMini);
@@ -67,6 +69,9 @@ public class MainActivity extends Activity {
                 float d = getResources().getDisplayMetrics().density;
                 float p = Math.min(scrollY / (140f * d), 1f);
                 tvLevel.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 84f - 56f * p);
+                // 右侧徽章与数字同步缩小（1 → 0.45）
+                ivBadge.setScaleX(1f - 0.55f * p);
+                ivBadge.setScaleY(1f - 0.55f * p);
                 header.setPadding(header.getPaddingLeft(), (int) ((28 - 18 * p) * d),
                         header.getPaddingRight(), (int) ((4 - 2 * p) * d));
                 // 四数据条：下滑 30% 后淡入并常驻头部，回到顶部隐藏

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- v3.7 APP 徽章图形：300° 进度环（缺口朝左上）+ 中心锐利闪电 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="76dp"
+    android:height="76dp"
+    android:viewportWidth="96"
+    android:viewportHeight="96">
+
+    <!-- 进度环：顶部起顺时针 300°，缺口留在左上 -->
+    <path
+        android:pathData="M48,16 A32,32 0 1 1 20.3,32"
+        android:strokeColor="#FFC400"
+        android:strokeLineCap="round"
+        android:strokeWidth="6" />
+
+    <!-- 环缺口处的起点端点（小圆点，示意进度头） -->
+    <path
+        android:fillColor="#FFD84D"
+        android:pathData="M48,16 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0" />
+
+    <!-- 中心闪电：斜切锐利造型 -->
+    <path
+        android:fillColor="#FFF3C4"
+        android:pathData="M55,24 L33,56 L45,56 L41,76 L65,42 L52,42 Z" />
+</vector>

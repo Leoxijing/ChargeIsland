@@ -17,16 +17,34 @@
         android:paddingEnd="20dp"
         android:paddingBottom="4dp">
 
-        <TextView
-            android:id="@+id/tvLevel"
-            android:layout_width="wrap_content"
+        <!-- 大数字 + 右侧 APP 徽章（下滑时与数字同步缩小） -->
+        <RelativeLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
-            android:includeFontPadding="false"
-            android:text="—"
-            android:textColor="#FFC400"
-            android:textSize="84sp"
-            android:textStyle="bold" />
+            android:layout_marginTop="14dp">
+
+            <TextView
+                android:id="@+id/tvLevel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:includeFontPadding="false"
+                android:text="—"
+                android:textColor="#FFC400"
+                android:textSize="84sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/ivBadge"
+                android:layout_width="76dp"
+                android:layout_height="76dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:background="@drawable/badge_bg"
+                android:contentDescription="充电进度岛徽章"
+                android:padding="8dp"
+                android:src="@drawable/ic_badge_ring" />
+        </RelativeLayout>
 
         <TextView
             android:id="@+id/tvStatus"
