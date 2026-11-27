@@ -76,8 +76,18 @@ public class ChargingService extends android.app.Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         ChargeDataStore.loadSettings(this);
-        // v4.0 开关：未充电且关闭常驻 → 不进前台直接退出（插电由 PowerReceiver 自动拉起）
+        // v4.1修复：startForegroundService() 后系统要求 5 秒内必须 startForeground()，
+        // 否则抛 ForegroundServiceDidNotStartInTimeException 使进程崩溃——v4.0 早退路径
+        // 直接 stopSelf() 未满足前台契约，导致关闭常驻开关后未充电点"开始监控"即闪退。
+        // 修复：先满足前台契约，随即移除通知并停止（IMPORTANCE_LOW 无横幅，基本无感）。
         if (!isChargingNow() && !ChargeDataStore.keepIdle) {
+            Notification base = buildNotification("充电进度岛", "未充电，已按设置停止常驻", "", 0, 0);
+            if (Build.VERSION.SDK_INT >= 34) {
+                startForeground(NOTIFY_ID, base, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
+            } else {
+                startForeground(NOTIFY_ID, base);
+            }
+            stopForeground(STOP_FOREGROUND_REMOVE);
             stopSelf();
             return START_NOT_STICKY;
         }
